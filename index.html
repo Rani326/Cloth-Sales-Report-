@@ -624,7 +624,10 @@
     while (week.length > 0 && week.length < 7) week.push(null);
     if (week.length) weeks.push(week);
 
-    grid.style.gridTemplateRows = `repeat(${weeks.length}, 1fr)`;
+    const isMobile = window.innerWidth <= 600;
+    grid.style.gridTemplateRows = isMobile
+      ? `repeat(${weeks.length}, 1fr auto)`
+      : `repeat(${weeks.length}, 1fr)`;
 
     let monthCard = 0, monthCash = 0, monthDays = 0;
 
