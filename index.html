@@ -332,7 +332,24 @@
       .day-headers { grid-template-columns: repeat(7, 1fr); }
       .day-header.week-col { display: none; }
       .days-grid { grid-template-columns: repeat(7, 1fr) !important; }
-      .week-cell { display: none !important; }
+      /* 주간합계: 전체 너비 가로 바로 표시 */
+      .week-cell {
+        grid-column: 1 / -1 !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: wrap;
+        padding: 4px 8px !important;
+        gap: 6px !important;
+        height: auto !important;
+        min-height: unset !important;
+      }
+      .week-cell.empty-week { display: none !important; }
+      .week-label { display: none; }
+      .week-row { flex-direction: row !important; gap: 8px !important; }
+      .week-item { font-size: 0.65em !important; }
+      .week-divider { display: none; }
+      .week-total-row { font-size: 0.7em !important; }
+      .week-avg-row { font-size: 0.62em !important; }
       .calendar-wrap { padding: 4px; }
       .days-grid { gap: 3px; }
       .day-cell { padding: 4px 3px; border-radius: 7px; gap: 2px; }
