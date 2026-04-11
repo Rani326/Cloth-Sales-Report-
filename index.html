@@ -19,10 +19,7 @@
       background: #fff; padding: 12px 20px 0;
       box-shadow: 0 2px 8px rgba(0,0,0,0.07); flex-shrink: 0;
     }
-    .header-top {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 12px;
-    }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .header-center { display: flex; align-items: center; gap: 10px; }
     .nav-btn {
       width: 34px; height: 34px; border: none; background: #f0f2f8;
@@ -42,11 +39,8 @@
     .btn-location:hover { background: #dddeff; }
 
     /* ── 월간 요약 ── */
-    .monthly-summary { display: flex; gap: 0; border-top: 1px solid #f0f0f0; }
-    .summary-item {
-      flex: 1; text-align: center; padding: 8px 4px;
-      border-right: 1px solid #f0f0f0;
-    }
+    .monthly-summary { display: flex; border-top: 1px solid #f0f0f0; }
+    .summary-item { flex: 1; text-align: center; padding: 8px 4px; border-right: 1px solid #f0f0f0; }
     .summary-item:last-child { border-right: none; }
     .summary-label { font-size: 0.65em; font-weight: 700; color: #bbb; letter-spacing: 1px; margin-bottom: 2px; }
     .summary-value { font-size: 0.92em; font-weight: 800; }
@@ -65,11 +59,22 @@
     .day-header.week-col { color: #9e9eff; background: #f8f8ff; border-left: 1px solid #ebebff; }
 
     /* ── 캘린더 ── */
-    .calendar-wrap { flex: 1; padding: 7px; overflow: hidden; }
-    .days-grid {
-      display: grid; grid-template-columns: repeat(7, 1fr) 88px;
-      gap: 5px; height: 100%;
+    .calendar-wrap { flex: 1; padding: 7px; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* 주 그룹: 각 주를 감싸는 컨테이너 */
+    .week-group { display: flex; flex-direction: column; flex: 1; gap: 0; min-height: 0; }
+
+    /* 날짜 행: 7개 날짜 + 주간합계 열 */
+    .days-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr) 88px;
+      gap: 5px;
+      flex: 1;
+      min-height: 0;
     }
+
+    /* 주 사이 간격 */
+    .week-group + .week-group { margin-top: 5px; }
 
     /* ── 날짜 셀 ── */
     .day-cell {
@@ -93,12 +98,10 @@
 
     /* 장소 배지 */
     .cell-location {
-      font-size: 0.54em; font-weight: 700;
-      background: #eef0ff; color: #5568e0;
+      font-size: 0.54em; font-weight: 700; background: #eef0ff; color: #5568e0;
       border-radius: 4px; padding: 1px 4px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
     }
-
     .cell-total { font-size: 0.78em; font-weight: 800; color: #2d2d2d; line-height: 1; }
     .cell-row { display: flex; align-items: center; gap: 3px; font-size: 0.62em; line-height: 1.4; overflow: hidden; }
     .cell-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
@@ -106,7 +109,7 @@
     .cell-dot.cash { background: #43a047; }
     .cell-amount { color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ── 주간합계 셀 ── */
+    /* ── 주간합계 셀 (데스크탑) ── */
     .week-cell {
       background: #f4f4ff; border-radius: 9px; padding: 7px 8px;
       display: flex; flex-direction: column; gap: 4px; overflow: hidden;
@@ -121,9 +124,14 @@
     .week-item.cash .label { color: #43a047; }
     .week-item .val { color: #444; font-weight: 600; }
     .week-divider { height: 1px; background: #dddeff; margin: 2px 0; }
-    .week-total-row { display: flex; align-items: center; gap: 3px; font-size: 0.65em; font-weight: 800; color: #4a4af4; }
+    .week-total-row { font-size: 0.65em; font-weight: 800; color: #4a4af4; }
     .week-avg-row { font-size: 0.58em; color: #aaa; font-weight: 600; }
     .week-avg-row span { color: #9e9eff; font-weight: 700; }
+
+    /* ── 주간합계 바 (모바일 전용) ── */
+    .week-bar {
+      display: none; /* 데스크탑에선 숨김 */
+    }
 
     /* ── 매출 모달 ── */
     .modal-overlay {
@@ -132,166 +140,76 @@
       align-items: center; justify-content: center;
     }
     .modal-overlay.open { display: flex; }
-    .modal {
-      background: #fff; border-radius: 20px; padding: 26px 24px;
-      width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.22);
-    }
+    .modal { background: #fff; border-radius: 20px; padding: 26px 24px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.22); }
     .modal-date { font-size: 0.78em; color: #bbb; font-weight: 600; margin-bottom: 4px; }
     .modal-title { font-size: 1.05em; font-weight: 800; margin-bottom: 14px; }
-    .modal-location-badge {
-      display: none; background: #eef0ff; border-radius: 8px;
-      padding: 7px 12px; font-size: 0.76em; font-weight: 700;
-      color: #5568e0; margin-bottom: 14px;
-    }
+    .modal-location-badge { display: none; background: #eef0ff; border-radius: 8px; padding: 7px 12px; font-size: 0.76em; font-weight: 700; color: #5568e0; margin-bottom: 14px; }
     .modal-location-badge.show { display: block; }
     .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
     .input-row { display: flex; flex-direction: column; gap: 5px; }
     .input-row label { font-size: 0.72em; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
     .input-row.card label { color: #5568e0; }
     .input-row.cash label { color: #43a047; }
-    .input-wrap {
-      display: flex; align-items: center; border: 1.5px solid #eee;
-      border-radius: 10px; background: #fafafa; overflow: hidden; transition: border 0.15s;
-    }
+    .input-wrap { display: flex; align-items: center; border: 1.5px solid #eee; border-radius: 10px; background: #fafafa; overflow: hidden; transition: border 0.15s; }
     .input-wrap:focus-within { border-color: #4a4af4; background: #fff; }
     .input-wrap.card-wrap:focus-within { border-color: #5568e0; }
     .input-wrap.cash-wrap:focus-within { border-color: #43a047; }
-    .input-wrap input {
-      flex: 1; border: none; background: transparent; padding: 11px 12px;
-      font-size: 0.95em; font-family: inherit; color: #2d2d2d;
-      outline: none; text-align: right;
-    }
+    .input-wrap input { flex: 1; border: none; background: transparent; padding: 11px 12px; font-size: 0.95em; font-family: inherit; color: #2d2d2d; outline: none; text-align: right; }
     .input-unit { padding: 0 12px 0 4px; font-size: 0.85em; color: #aaa; font-weight: 600; }
-    .modal-total {
-      background: #f4f4ff; border-radius: 10px; padding: 12px 14px;
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
-    }
+    .modal-total { background: #f4f4ff; border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .modal-total-label { font-size: 0.8em; font-weight: 700; color: #888; }
     .modal-total-value { font-size: 1.05em; font-weight: 900; color: #4a4af4; }
     .modal-btns { display: flex; gap: 8px; }
-    .btn-save {
-      flex: 1; padding: 13px; background: #4a4af4; color: #fff;
-      border: none; border-radius: 10px; font-size: 0.95em; font-weight: 700;
-      cursor: pointer; font-family: inherit; transition: background 0.15s;
-    }
+    .btn-save { flex: 1; padding: 13px; background: #4a4af4; color: #fff; border: none; border-radius: 10px; font-size: 0.95em; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
     .btn-save:hover { background: #3636d6; }
     .btn-save:disabled { background: #aaa; cursor: not-allowed; }
-    .btn-delete {
-      padding: 13px 16px; background: #fff; color: #ef5350;
-      border: 1.5px solid #ef5350; border-radius: 10px;
-      font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit;
-    }
+    .btn-delete { padding: 13px 16px; background: #fff; color: #ef5350; border: 1.5px solid #ef5350; border-radius: 10px; font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-delete:hover { background: #fff5f5; }
-    .btn-cancel {
-      padding: 13px 16px; background: #f0f2f8; color: #888;
-      border: none; border-radius: 10px;
-      font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit;
-    }
+    .btn-cancel { padding: 13px 16px; background: #f0f2f8; color: #888; border: none; border-radius: 10px; font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-cancel:hover { background: #e2e4f0; }
 
     /* ── 장소 설정 모달 ── */
-    .loc-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(30,30,60,0.45); z-index: 200;
-      align-items: center; justify-content: center;
-    }
+    .loc-overlay { display: none; position: fixed; inset: 0; background: rgba(30,30,60,0.45); z-index: 200; align-items: center; justify-content: center; }
     .loc-overlay.open { display: flex; }
-    .loc-modal {
-      background: #fff; border-radius: 20px; padding: 24px 22px;
-      width: 380px; max-height: 85vh; overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
-    }
+    .loc-modal { background: #fff; border-radius: 20px; padding: 24px 22px; width: 380px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.22); }
     .loc-modal-title { font-size: 1.05em; font-weight: 800; margin-bottom: 4px; }
     .loc-modal-desc { font-size: 0.72em; color: #aaa; line-height: 1.5; margin-bottom: 18px; }
-
-    /* 요일별 카드 */
     .dow-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-    .dow-card {
-      border: 1.5px solid #eaeaff; border-radius: 12px;
-      background: #fafafe; overflow: hidden;
-    }
-    .dow-card-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; cursor: pointer;
-      transition: background 0.12s;
-    }
+    .dow-card { border: 1.5px solid #eaeaff; border-radius: 12px; background: #fafafe; overflow: hidden; }
+    .dow-card-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; transition: background 0.12s; }
     .dow-card-header:hover { background: #f0f0ff; }
-    .dow-badge {
-      width: 30px; height: 30px; border-radius: 50%;
-      background: #4a4af4; color: #fff;
-      font-size: 0.75em; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
+    .dow-badge { width: 30px; height: 30px; border-radius: 50%; background: #4a4af4; color: #fff; font-size: 0.75em; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .dow-badge.sun { background: #ef5350; }
     .dow-badge.sat { background: #5c6bc0; }
     .dow-info { flex: 1; min-width: 0; }
     .dow-name { font-size: 0.85em; font-weight: 800; color: #2d2d2d; }
-    .dow-current {
-      font-size: 0.68em; color: #999; margin-top: 2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .dow-current { font-size: 0.68em; color: #999; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .dow-current.active { color: #5568e0; font-weight: 700; }
     .dow-toggle { font-size: 0.75em; color: #bbb; flex-shrink: 0; }
-
-    /* 요일 편집 영역 */
-    .dow-edit {
-      display: none; padding: 12px 14px 14px;
-      border-top: 1px solid #eaeaff; background: #f4f4ff;
-    }
+    .dow-edit { display: none; padding: 12px 14px 14px; border-top: 1px solid #eaeaff; background: #f4f4ff; }
     .dow-edit.open { display: block; }
     .dow-history { margin-bottom: 10px; }
     .dow-history-title { font-size: 0.65em; font-weight: 800; color: #9e9eff; letter-spacing: 1px; margin-bottom: 6px; }
-    .dow-history-item {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 8px; background: #fff; border-radius: 7px;
-      border: 1px solid #eaeaff; margin-bottom: 4px;
-    }
+    .dow-history-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: #fff; border-radius: 7px; border: 1px solid #eaeaff; margin-bottom: 4px; }
     .dow-history-item-info { flex: 1; }
     .dow-history-item-name { font-size: 0.78em; font-weight: 700; color: #2d2d2d; }
     .dow-history-item-date { font-size: 0.65em; color: #bbb; }
-    .dow-history-del {
-      width: 22px; height: 22px; background: #fff; color: #ef5350;
-      border: 1px solid #efb0b0; border-radius: 50%;
-      font-size: 0.85em; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
+    .dow-history-del { width: 22px; height: 22px; background: #fff; color: #ef5350; border: 1px solid #efb0b0; border-radius: 50%; font-size: 0.85em; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .dow-history-del:hover { background: #fff5f5; }
     .dow-no-history { font-size: 0.72em; color: #ccc; margin-bottom: 8px; }
-
-    /* 새 장소 추가 폼 */
     .dow-add-form { display: flex; flex-direction: column; gap: 8px; }
     .dow-add-title { font-size: 0.65em; font-weight: 800; color: #9e9eff; letter-spacing: 1px; }
     .dow-field { display: flex; flex-direction: column; gap: 3px; }
     .dow-field label { font-size: 0.65em; font-weight: 700; color: #888; letter-spacing: 0.5px; }
-    .dow-field input {
-      border: 1.5px solid #dddeff; border-radius: 8px; padding: 8px 10px;
-      font-size: 0.85em; font-family: inherit; outline: none; background: #fff;
-      transition: border 0.15s;
-    }
+    .dow-field input { border: 1.5px solid #dddeff; border-radius: 8px; padding: 8px 10px; font-size: 0.85em; font-family: inherit; outline: none; background: #fff; transition: border 0.15s; }
     .dow-field input:focus { border-color: #4a4af4; }
-    .btn-dow-add {
-      padding: 9px; background: #4a4af4; color: #fff;
-      border: none; border-radius: 8px; font-size: 0.82em; font-weight: 700;
-      cursor: pointer; font-family: inherit; transition: background 0.15s;
-    }
+    .btn-dow-add { padding: 9px; background: #4a4af4; color: #fff; border: none; border-radius: 8px; font-size: 0.82em; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
     .btn-dow-add:hover { background: #3636d6; }
-
-    .btn-loc-close {
-      width: 100%; padding: 11px; background: #f0f2f8; color: #888;
-      border: none; border-radius: 10px; font-size: 0.9em; font-weight: 600;
-      cursor: pointer; font-family: inherit;
-    }
+    .btn-loc-close { width: 100%; padding: 11px; background: #f0f2f8; color: #888; border: none; border-radius: 10px; font-size: 0.9em; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-loc-close:hover { background: #e2e4f0; }
 
     /* ── Firebase 상태 ── */
-    .fb-status {
-      position: fixed; bottom: 14px; right: 14px; background: #fff;
-      border-radius: 20px; padding: 5px 11px; font-size: 0.68em; font-weight: 700;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-      display: flex; align-items: center; gap: 6px; z-index: 50;
-    }
+    .fb-status { position: fixed; bottom: 14px; right: 14px; background: #fff; border-radius: 20px; padding: 5px 11px; font-size: 0.68em; font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 6px; z-index: 50; }
     .fb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .fb-dot.connected { background: #43a047; }
     .fb-dot.local     { background: #ffa726; }
@@ -300,24 +218,11 @@
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     /* ── 마이그레이션 배너 ── */
-    .migrate-banner {
-      display: none; position: fixed; bottom: 52px; right: 14px;
-      background: #fff3cd; border: 1.5px solid #ffc107; border-radius: 12px;
-      padding: 10px 14px; font-size: 0.75em; font-weight: 600; color: #7a5800;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 50; max-width: 240px; line-height: 1.5;
-    }
+    .migrate-banner { display: none; position: fixed; bottom: 52px; right: 14px; background: #fff3cd; border: 1.5px solid #ffc107; border-radius: 12px; padding: 10px 14px; font-size: 0.75em; font-weight: 600; color: #7a5800; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 50; max-width: 240px; line-height: 1.5; }
     .migrate-banner.show { display: block; }
     .migrate-btns { display: flex; gap: 6px; margin-top: 8px; }
-    .btn-migrate {
-      flex: 1; padding: 6px 8px; background: #4a4af4; color: #fff;
-      border: none; border-radius: 7px; font-size: 0.85em; font-weight: 700;
-      cursor: pointer; font-family: inherit;
-    }
-    .btn-migrate-skip {
-      flex: 1; padding: 6px 8px; background: #f0f0f0; color: #888;
-      border: none; border-radius: 7px; font-size: 0.85em; font-weight: 600;
-      cursor: pointer; font-family: inherit;
-    }
+    .btn-migrate { flex: 1; padding: 6px 8px; background: #4a4af4; color: #fff; border: none; border-radius: 7px; font-size: 0.85em; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-migrate-skip { flex: 1; padding: 6px 8px; background: #f0f0f0; color: #888; border: none; border-radius: 7px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: inherit; }
 
     /* ── 모바일 ── */
     @media (max-width: 600px) {
@@ -329,29 +234,41 @@
       .summary-item { flex: 0 0 50%; border-right: none; border-bottom: 1px solid #f0f0f0; }
       .summary-item:nth-child(odd) { border-right: 1px solid #f0f0f0; }
       .summary-item:last-child, .summary-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+
+      /* 요일 헤더: 주간합계 열 숨김 */
       .day-headers { grid-template-columns: repeat(7, 1fr); }
       .day-header.week-col { display: none; }
-      .days-grid { grid-template-columns: repeat(7, 1fr) !important; }
-      /* 주간합계: 전체 너비 가로 바로 표시 */
-      .week-cell {
-        grid-column: 1 / -1 !important;
-        flex-direction: row !important;
-        align-items: center !important;
+
+      /* 날짜 행: 7열로 */
+      .days-row { grid-template-columns: repeat(7, 1fr); }
+
+      /* 데스크탑 주간합계 셀 숨김 */
+      .week-cell { display: none; }
+
+      /* 모바일 주간합계 바 */
+      .week-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         flex-wrap: wrap;
-        padding: 4px 8px !important;
-        gap: 6px !important;
-        height: auto !important;
-        min-height: unset !important;
+        background: #f4f4ff;
+        border-radius: 7px;
+        padding: 5px 8px;
+        margin-top: 3px;
+        border: 1px solid #eaeaff;
       }
-      .week-cell.empty-week { display: none !important; }
-      .week-label { display: none; }
-      .week-row { flex-direction: row !important; gap: 8px !important; }
-      .week-item { font-size: 0.65em !important; }
-      .week-divider { display: none; }
-      .week-total-row { font-size: 0.7em !important; }
-      .week-avg-row { font-size: 0.62em !important; }
+      .week-bar-label { font-size: 0.6em; font-weight: 800; color: #9e9eff; letter-spacing: 0.5px; }
+      .week-bar-item { font-size: 0.62em; font-weight: 600; }
+      .week-bar-item.card { color: #5568e0; }
+      .week-bar-item.cash { color: #43a047; }
+      .week-bar-sep { font-size: 0.6em; color: #ddd; }
+      .week-bar-total { font-size: 0.68em; font-weight: 800; color: #4a4af4; }
+      .week-bar-avg { font-size: 0.6em; color: #aaa; font-weight: 600; margin-left: auto; }
+      .week-bar-avg span { color: #9e9eff; font-weight: 700; }
+
       .calendar-wrap { padding: 4px; }
-      .days-grid { gap: 3px; }
+      .week-group + .week-group { margin-top: 3px; }
+      .days-row { gap: 3px; }
       .day-cell { padding: 4px 3px; border-radius: 7px; gap: 2px; }
       .day-num { font-size: 0.7em; width: 18px; height: 18px; }
       .cell-total { font-size: 0.7em; }
@@ -405,9 +322,7 @@
   <div class="day-header week-col">주간합계</div>
 </div>
 
-<div class="calendar-wrap">
-  <div class="days-grid" id="days-grid"></div>
-</div>
+<div class="calendar-wrap" id="calendar-wrap"></div>
 
 <!-- 매출 입력 모달 -->
 <div class="modal-overlay" id="modal-overlay">
@@ -447,22 +362,17 @@
 <div class="loc-overlay" id="loc-overlay">
   <div class="loc-modal">
     <div class="loc-modal-title">📍 요일별 장소 설정</div>
-    <div class="loc-modal-desc">
-      요일마다 장소와 시작일을 따로 설정할 수 있어요.<br>
-      장소를 추가하면 그 날부터 해당 요일의 주차가 1주차로 리셋돼요.
-    </div>
+    <div class="loc-modal-desc">요일마다 장소와 시작일을 따로 설정할 수 있어요.<br>장소를 추가하면 그 날부터 해당 요일의 주차가 1주차로 리셋돼요.</div>
     <div class="dow-list" id="dow-list"></div>
     <button class="btn-loc-close" onclick="closeLocModal()">닫기</button>
   </div>
 </div>
 
-<!-- Firebase 상태 -->
 <div class="fb-status" id="fb-status">
   <div class="fb-dot loading" id="fb-dot"></div>
   <span id="fb-text">연결 중...</span>
 </div>
 
-<!-- 마이그레이션 배너 -->
 <div class="migrate-banner" id="migrate-banner">
   📦 로컬에 저장된 기존 데이터를 Firebase로 옮길까요?
   <div class="migrate-btns">
@@ -472,7 +382,6 @@
 </div>
 
 <script>
-  // ── Firebase 설정 ──
   const firebaseConfig = {
     apiKey:            "AIzaSyC0-fkZLIBHdkkLqeWl-mXeBqbaN7dHSmk",
     authDomain:        "firestore-database-64834.firebaseapp.com",
@@ -482,12 +391,11 @@
     appId:             "1:813887455411:web:9bb8f656ec2177ae2f30c6"
   };
 
-  // ── 상수 ──
   const MONTH_NAMES  = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   const DAY_KO       = ['일','월','화','수','목','금','토'];
   const LS_KEY       = 'sales-data';
   const LS_MIGRATED  = 'sales-migrated';
-  const LS_LOCATIONS = 'sales-locations-v2'; // 요일별 구조, 기존 키와 구분
+  const LS_LOCATIONS = 'sales-locations-v2';
 
   const todayDate  = new Date();
   const todayKey   = fmt(todayDate.getFullYear(), todayDate.getMonth()+1, todayDate.getDate());
@@ -497,14 +405,9 @@
   let selectedDow  = null;
   let isSaving     = false;
 
-  // ── 데이터 ──
   let sales = {};
+  let dowLocations = {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
 
-  // 요일별 장소 이력: dowLocations[dow] = [{id, name, startDate}, ...] (startDate 오름차순)
-  // dow: 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
-  let dowLocations = { 0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[] };
-
-  // ── Firebase ──
   const USE_FIREBASE = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
   let db = null;
 
@@ -527,7 +430,7 @@
         if (!localStorage.getItem(LS_MIGRATED) && Object.keys(localData).length > 0) {
           document.getElementById('migrate-banner').classList.add('show');
         }
-      }, err => {
+      }, () => {
         setStatus('error', '연결 실패');
         sales = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
         buildCalendar();
@@ -536,34 +439,28 @@
       db.collection('config').doc('dow-locations').onSnapshot(doc => {
         if (doc.exists && doc.data().data) {
           dowLocations = doc.data().data;
-          // 누락된 요일 보완
-          for (let i = 0; i < 7; i++) {
-            if (!dowLocations[i]) dowLocations[i] = [];
-          }
+          for (let i = 0; i < 7; i++) { if (!dowLocations[i]) dowLocations[i] = []; }
         }
         buildCalendar();
-      }, err => {
-        dowLocations = JSON.parse(localStorage.getItem(LS_LOCATIONS) || 'null') || { 0:[],1:[],2:[],3:[],4:[],5:[],6:[] };
+      }, () => {
+        dowLocations = JSON.parse(localStorage.getItem(LS_LOCATIONS) || 'null') || {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
         buildCalendar();
       });
 
     } catch(e) {
       setStatus('error', '초기화 실패');
       sales = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-      dowLocations = JSON.parse(localStorage.getItem(LS_LOCATIONS) || 'null') || { 0:[],1:[],2:[],3:[],4:[],5:[],6:[] };
+      dowLocations = JSON.parse(localStorage.getItem(LS_LOCATIONS) || 'null') || {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
       buildCalendar();
     }
   } else {
     setStatus('local', '로컬 저장');
     sales = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-    dowLocations = JSON.parse(localStorage.getItem(LS_LOCATIONS) || 'null') || { 0:[],1:[],2:[],3:[],4:[],5:[],6:[] };
+    dowLocations = JSON.parse(localStorage.getItem(LS_LOCATIONS) || 'null') || {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
     buildCalendar();
   }
 
-  // ── 유틸 ──
-  function fmt(y, m, d) {
-    return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  }
+  function fmt(y, m, d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
   function fmtMoney(n) {
     if (!n || n === 0) return '-';
     if (n >= 100000000) return (n/100000000).toFixed(1).replace(/\.0$/,'') + '억';
@@ -572,45 +469,31 @@
     if (n >= 10000)     return (n/10000).toFixed(1).replace(/\.0$/,'') + '만';
     return n.toLocaleString();
   }
-  function fmtMoneyFull(n) {
-    if (!n || n === 0) return '0원';
-    return n.toLocaleString('ko-KR') + '원';
-  }
+  function fmtMoneyFull(n) { return (!n || n === 0) ? '0원' : n.toLocaleString('ko-KR') + '원'; }
 
-  // ── 장소 유틸 ──
-  // 특정 요일(dow)의 dateKey에 해당하는 활성 장소 반환
   function getActiveLoc(dow, dateKey) {
     const list = dowLocations[dow] || [];
     let active = null;
-    for (const loc of list) { // 이미 오름차순 정렬 가정
-      if (loc.startDate <= dateKey) active = loc;
-      else break;
-    }
+    for (const loc of list) { if (loc.startDate <= dateKey) active = loc; else break; }
     return active;
   }
-
-  // 해당 요일 기준 몇 주차인지
   function getWeekNum(dateStr, dow, locStartDate) {
     const start = new Date(locStartDate + 'T00:00:00');
     let firstOcc = new Date(start);
     while (firstOcc.getDay() !== dow) firstOcc.setDate(firstOcc.getDate() + 1);
     const target = new Date(dateStr + 'T00:00:00');
     if (target < firstOcc) return null;
-    const diffDays = Math.round((target - firstOcc) / 86400000);
-    return Math.floor(diffDays / 7) + 1;
+    return Math.floor(Math.round((target - firstOcc) / 86400000) / 7) + 1;
   }
-
-  function shortName(name) {
-    return name.length > 6 ? name.slice(0, 5) + '…' : name;
-  }
+  function shortName(name) { return name.length > 6 ? name.slice(0,5) + '…' : name; }
 
   // ── 캘린더 렌더링 ──
   function buildCalendar() {
     const y = currentYear, m = currentMonth;
     document.getElementById('month-label').innerHTML = `<span>${y}년</span> ${MONTH_NAMES[m]}`;
 
-    const grid = document.getElementById('days-grid');
-    grid.innerHTML = '';
+    const wrap = document.getElementById('calendar-wrap');
+    wrap.innerHTML = '';
 
     const firstDay    = new Date(y, m, 1).getDay();
     const daysInMonth = new Date(y, m+1, 0).getDate();
@@ -624,14 +507,17 @@
     while (week.length > 0 && week.length < 7) week.push(null);
     if (week.length) weeks.push(week);
 
-    const isMobile = window.innerWidth <= 600;
-    grid.style.gridTemplateRows = isMobile
-      ? `repeat(${weeks.length}, 1fr auto)`
-      : `repeat(${weeks.length}, 1fr)`;
-
     let monthCard = 0, monthCash = 0, monthDays = 0;
 
     weeks.forEach(wk => {
+      // 주 그룹 컨테이너
+      const wkGroup = document.createElement('div');
+      wkGroup.className = 'week-group';
+
+      // 날짜 행
+      const daysRow = document.createElement('div');
+      daysRow.className = 'days-row';
+
       let weekCard = 0, weekCash = 0, hasData = false, daysWithData = 0;
 
       wk.forEach(d => {
@@ -655,22 +541,19 @@
           num.textContent = d;
           cell.appendChild(num);
 
-          // 장소 배지 (해당 요일의 활성 장소)
           const loc = getActiveLoc(dow, key);
           if (loc) {
-            const weekNum = getWeekNum(key, dow, loc.startDate);
-            if (weekNum !== null) {
+            const wn = getWeekNum(key, dow, loc.startDate);
+            if (wn !== null) {
               const badge = document.createElement('div');
               badge.className = 'cell-location';
-              badge.textContent = `${shortName(loc.name)} ${weekNum}주차`;
+              badge.textContent = `${shortName(loc.name)} ${wn}주차`;
               cell.appendChild(badge);
             }
           }
 
           if (entry) {
-            const card  = entry.card  || 0;
-            const cash  = entry.cash  || 0;
-            const total = card + cash;
+            const card = entry.card || 0, cash = entry.cash || 0, total = card + cash;
             weekCard += card; weekCash += cash; hasData = true; daysWithData++;
             monthCard += card; monthCash += cash; monthDays++;
 
@@ -692,13 +575,12 @@
               cell.appendChild(row);
             }
           }
-
           cell.addEventListener('click', () => openModal(key, m, d, dow));
         }
-        grid.appendChild(cell);
+        daysRow.appendChild(cell);
       });
 
-      // 주간 합계 + 평균
+      // 데스크탑 주간합계 셀 (8번째 열)
       const weekCell = document.createElement('div');
       if (!hasData) {
         weekCell.className = 'week-cell empty-week';
@@ -714,10 +596,29 @@
           </div>
           <div class="week-divider"></div>
           <div class="week-total-row">${fmtMoney(weekTotal)}</div>
-          <div class="week-avg-row">일평균 <span>${fmtMoney(weekAvg)}</span></div>
-        `;
+          <div class="week-avg-row">일평균 <span>${fmtMoney(weekAvg)}</span></div>`;
       }
-      grid.appendChild(weekCell);
+      daysRow.appendChild(weekCell);
+      wkGroup.appendChild(daysRow);
+
+      // 모바일 주간합계 바
+      if (hasData) {
+        const weekTotal = weekCard + weekCash;
+        const weekAvg   = daysWithData > 0 ? Math.round(weekTotal / daysWithData) : 0;
+        const bar = document.createElement('div');
+        bar.className = 'week-bar';
+        bar.innerHTML = `
+          <span class="week-bar-label">주간</span>
+          <span class="week-bar-item card">카드 ${fmtMoney(weekCard)}</span>
+          <span class="week-bar-sep">|</span>
+          <span class="week-bar-item cash">현금 ${fmtMoney(weekCash)}</span>
+          <span class="week-bar-sep">|</span>
+          <span class="week-bar-total">${fmtMoney(weekTotal)}</span>
+          <span class="week-bar-avg">일평균 <span>${fmtMoney(weekAvg)}</span></span>`;
+        wkGroup.appendChild(bar);
+      }
+
+      wrap.appendChild(wkGroup);
     });
 
     const monthTotal = monthCard + monthCash;
@@ -729,27 +630,20 @@
 
   // ── 매출 모달 ──
   function openModal(key, month, day, dow) {
-    selectedKey = key;
-    selectedDow = dow;
+    selectedKey = key; selectedDow = dow;
     const entry = sales[key] || {};
-    document.getElementById('modal-date').textContent =
-      `${currentYear}년 ${MONTH_NAMES[month]} ${day}일 (${DAY_KO[dow]})`;
+    document.getElementById('modal-date').textContent = `${currentYear}년 ${MONTH_NAMES[month]} ${day}일 (${DAY_KO[dow]})`;
     document.getElementById('input-card').value = entry.card || '';
     document.getElementById('input-cash').value = entry.cash || '';
     document.getElementById('btn-delete').style.display = sales[key] ? 'inline-block' : 'none';
     document.getElementById('btn-save').disabled = false;
-
-    // 장소 배지
     const badge = document.getElementById('modal-location-badge');
     const loc = getActiveLoc(dow, key);
     if (loc) {
       const wn = getWeekNum(key, dow, loc.startDate);
-      if (wn !== null) {
-        badge.textContent = `📍 ${loc.name} · ${wn}주차`;
-        badge.classList.add('show');
-      } else { badge.classList.remove('show'); }
-    } else { badge.classList.remove('show'); }
-
+      if (wn !== null) { badge.textContent = `📍 ${loc.name} · ${wn}주차`; badge.classList.add('show'); }
+      else badge.classList.remove('show');
+    } else badge.classList.remove('show');
     updateModalTotal();
     document.getElementById('modal-overlay').classList.add('open');
     setTimeout(() => document.getElementById('input-card').focus(), 50);
@@ -763,31 +657,18 @@
   document.getElementById('input-card').addEventListener('input', updateModalTotal);
   document.getElementById('input-cash').addEventListener('input', updateModalTotal);
 
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
-    selectedKey = null; selectedDow = null; isSaving = false;
-  }
+  function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); selectedKey = null; selectedDow = null; isSaving = false; }
 
   async function saveEntry() {
     if (isSaving) return;
     const card = parseInt(document.getElementById('input-card').value) || 0;
     const cash = parseInt(document.getElementById('input-cash').value) || 0;
     if (card === 0 && cash === 0) { deleteEntry(); return; }
-    isSaving = true;
-    document.getElementById('btn-save').disabled = true;
+    isSaving = true; document.getElementById('btn-save').disabled = true;
     if (USE_FIREBASE && db) {
-      try {
-        await db.collection('sales').doc(selectedKey).set({ card, cash });
-      } catch(e) {
-        alert('저장 중 오류가 발생했습니다.');
-        document.getElementById('btn-save').disabled = false;
-        isSaving = false; return;
-      }
-    } else {
-      sales[selectedKey] = { card, cash };
-      localStorage.setItem(LS_KEY, JSON.stringify(sales));
-      buildCalendar();
-    }
+      try { await db.collection('sales').doc(selectedKey).set({ card, cash }); }
+      catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('btn-save').disabled = false; isSaving = false; return; }
+    } else { sales[selectedKey] = { card, cash }; localStorage.setItem(LS_KEY, JSON.stringify(sales)); buildCalendar(); }
     closeModal();
   }
 
@@ -795,51 +676,35 @@
     if (USE_FIREBASE && db) {
       try { await db.collection('sales').doc(selectedKey).delete(); }
       catch(e) { alert('삭제 중 오류가 발생했습니다.'); return; }
-    } else {
-      delete sales[selectedKey];
-      localStorage.setItem(LS_KEY, JSON.stringify(sales));
-      buildCalendar();
-    }
+    } else { delete sales[selectedKey]; localStorage.setItem(LS_KEY, JSON.stringify(sales)); buildCalendar(); }
     closeModal();
   }
 
   // ── 장소 설정 모달 ──
-  const DOW_LABELS = [
-    { name: '일요일', cls: 'sun' },
-    { name: '월요일', cls: '' },
-    { name: '화요일', cls: '' },
-    { name: '수요일', cls: '' },
-    { name: '목요일', cls: '' },
-    { name: '금요일', cls: '' },
-    { name: '토요일', cls: 'sat' },
-  ];
+  const DOW_LABELS = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+  const DOW_CLS    = ['sun','','','','','','sat'];
 
   function openLocModal() {
+    document.getElementById('loc-input-date-tmp') && null;
     renderDowList();
     document.getElementById('loc-overlay').classList.add('open');
   }
-  function closeLocModal() {
-    document.getElementById('loc-overlay').classList.remove('open');
-  }
+  function closeLocModal() { document.getElementById('loc-overlay').classList.remove('open'); }
 
   function renderDowList() {
     const container = document.getElementById('dow-list');
-    // 월~금(1~5) 우선, 나머지 뒤에
     const order = [1,2,3,4,5,6,0];
     container.innerHTML = order.map(dow => {
       const list = dowLocations[dow] || [];
       const activeLoc = list.length > 0 ? list[list.length - 1] : null;
-      const lbl = DOW_LABELS[dow];
       return `
-        <div class="dow-card" id="dow-card-${dow}">
+        <div class="dow-card">
           <div class="dow-card-header" onclick="toggleDow(${dow})">
-            <div class="dow-badge ${lbl.cls}">${DAY_KO[dow]}</div>
+            <div class="dow-badge ${DOW_CLS[dow]}">${DAY_KO[dow]}</div>
             <div class="dow-info">
-              <div class="dow-name">${lbl.name}</div>
+              <div class="dow-name">${DOW_LABELS[dow]}</div>
               <div class="dow-current ${activeLoc ? 'active' : ''}">
-                ${activeLoc
-                  ? `${activeLoc.name} · ${activeLoc.startDate}부터`
-                  : '장소 미설정'}
+                ${activeLoc ? `${activeLoc.name} · ${activeLoc.startDate}부터` : '장소 미설정'}
               </div>
             </div>
             <div class="dow-toggle">▾</div>
@@ -855,49 +720,33 @@
                         <div class="dow-history-item-name">${loc.name}</div>
                         <div class="dow-history-item-date">${loc.startDate}부터</div>
                       </div>
-                      <button class="dow-history-del" onclick="delDowLoc(${dow}, '${loc.id}')">×</button>
-                    </div>
-                  `).join('')
+                      <button class="dow-history-del" onclick="delDowLoc(${dow},'${loc.id}')">×</button>
+                    </div>`).join('')
               }
             </div>
             <div class="dow-add-form">
               <div class="dow-add-title">+ 새 장소 추가</div>
-              <div class="dow-field">
-                <label>장소 이름</label>
-                <input type="text" id="loc-name-${dow}" placeholder="예: 강남점, 홍대점" maxlength="20" />
-              </div>
-              <div class="dow-field">
-                <label>시작 일자</label>
-                <input type="date" id="loc-date-${dow}" value="${todayKey}" />
-              </div>
+              <div class="dow-field"><label>장소 이름</label><input type="text" id="loc-name-${dow}" placeholder="예: 강남점, 홍대점" maxlength="20" /></div>
+              <div class="dow-field"><label>시작 일자</label><input type="date" id="loc-date-${dow}" value="${todayKey}" /></div>
               <button class="btn-dow-add" onclick="addDowLoc(${dow})">이 요일에 추가</button>
             </div>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join('');
   }
 
-  function toggleDow(dow) {
-    const edit = document.getElementById(`dow-edit-${dow}`);
-    edit.classList.toggle('open');
-  }
+  function toggleDow(dow) { document.getElementById(`dow-edit-${dow}`).classList.toggle('open'); }
 
   async function addDowLoc(dow) {
-    const name      = (document.getElementById(`loc-name-${dow}`).value || '').trim();
+    const name = (document.getElementById(`loc-name-${dow}`).value || '').trim();
     const startDate = document.getElementById(`loc-date-${dow}`).value;
     if (!name) { alert('장소 이름을 입력해주세요.'); return; }
     if (!startDate) { alert('시작 일자를 선택해주세요.'); return; }
-
-    const newEntry = { id: Date.now().toString(), name, startDate };
-    const list = [...(dowLocations[dow] || []), newEntry];
-    // startDate 오름차순 정렬
+    const list = [...(dowLocations[dow] || []), { id: Date.now().toString(), name, startDate }];
     list.sort((a, b) => a.startDate.localeCompare(b.startDate));
     dowLocations[dow] = list;
-
     await saveDowLocations();
     renderDowList();
-    // 추가 후 해당 요일 패널 다시 열기
     const edit = document.getElementById(`dow-edit-${dow}`);
     if (edit) edit.classList.add('open');
     buildCalendar();
@@ -915,18 +764,11 @@
 
   async function saveDowLocations() {
     if (USE_FIREBASE && db) {
-      try {
-        await db.collection('config').doc('dow-locations').set({ data: dowLocations });
-      } catch(e) {
-        console.error('장소 저장 오류:', e);
-        localStorage.setItem(LS_LOCATIONS, JSON.stringify(dowLocations));
-      }
-    } else {
-      localStorage.setItem(LS_LOCATIONS, JSON.stringify(dowLocations));
-    }
+      try { await db.collection('config').doc('dow-locations').set({ data: dowLocations }); }
+      catch(e) { localStorage.setItem(LS_LOCATIONS, JSON.stringify(dowLocations)); }
+    } else { localStorage.setItem(LS_LOCATIONS, JSON.stringify(dowLocations)); }
   }
 
-  // ── 마이그레이션 ──
   async function migrateFromLocal() {
     const localData = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
     const keys = Object.keys(localData);
@@ -935,9 +777,7 @@
     document.querySelector('.btn-migrate').disabled = true;
     try {
       const batch = db.batch();
-      keys.forEach(key => {
-        batch.set(db.collection('sales').doc(key), localData[key], { merge: true });
-      });
+      keys.forEach(key => batch.set(db.collection('sales').doc(key), localData[key], { merge: true }));
       await batch.commit();
       localStorage.setItem(LS_MIGRATED, '1');
       dismissMigrate();
@@ -948,24 +788,11 @@
       document.querySelector('.btn-migrate').disabled = false;
     }
   }
-  function dismissMigrate() {
-    localStorage.setItem(LS_MIGRATED, '1');
-    document.getElementById('migrate-banner').classList.remove('show');
-  }
+  function dismissMigrate() { localStorage.setItem(LS_MIGRATED, '1'); document.getElementById('migrate-banner').classList.remove('show'); }
 
-  // ── 월 이동 ──
-  document.getElementById('btn-prev').onclick = () => {
-    if (currentMonth === 0) { currentMonth = 11; currentYear--; }
-    else currentMonth--;
-    buildCalendar();
-  };
-  document.getElementById('btn-next').onclick = () => {
-    if (currentMonth === 11) { currentMonth = 0; currentYear++; }
-    else currentMonth++;
-    buildCalendar();
-  };
+  document.getElementById('btn-prev').onclick = () => { if (currentMonth === 0) { currentMonth = 11; currentYear--; } else currentMonth--; buildCalendar(); };
+  document.getElementById('btn-next').onclick = () => { if (currentMonth === 11) { currentMonth = 0; currentYear++; } else currentMonth++; buildCalendar(); };
 
-  // ── 키보드 ──
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeModal(); closeLocModal(); }
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveEntry();
