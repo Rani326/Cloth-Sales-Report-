@@ -25,7 +25,7 @@
     .header-loc-badge { padding: 5px 12px; background: #fff7ed; color: #ea580c; border: 1.5px solid #fdba74; border-radius: 20px; font-size: 0.72em; font-weight: 700; }
 
     /* ── 월간 요약 ── */
-    .monthly-summary { display: flex; border-top: 1px solid #f0f0f0; }
+    .monthly-summary { display: flex; border-top: 1px solid #f0f0f0; border-top: none; }
     .summary-item { flex: 1; text-align: center; padding: 8px 4px; border-right: 1px solid #f0f0f0; }
     .summary-item:last-child { border-right: none; }
     .summary-label { font-size: 0.63em; font-weight: 700; color: #bbb; letter-spacing: 0.5px; margin-bottom: 2px; }
@@ -61,7 +61,9 @@
     .day-cell.today .day-num { background: #f97316; color: #fff !important; }
 
     /* 장소 배지 */
-    .cell-location { font-size: 0.54em; font-weight: 700; background: #fff7ed; color: #ea580c; border-radius: 4px; padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .cell-location { font-size: 0.54em; font-weight: 700; border-radius: 4px; padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .cell-location.bp { background: #fff7ed; color: #ea580c; }
+    .cell-location.yd { background: #f5f3ff; color: #7c3aed; }
 
     /* 순수익 */
     .cell-net { font-size: 0.76em; font-weight: 900; line-height: 1; }
@@ -76,19 +78,24 @@
     .cell-amount { color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cell-amount.neg { color: #ef5350; }
 
+    /* ── 장소 탭 ── */
+    .loc-tabs { display: flex; gap: 6px; padding: 7px 20px; border-top: 1px solid #f0f0f0; }
+    .loc-tab { padding: 4px 12px; border: 1.5px solid #fed7aa; border-radius: 20px; background: #fff; color: #bbb; font-size: 0.68em; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .loc-tab.active { background: #f97316; color: #fff; border-color: #f97316; }
+
     /* ── 주간합계 셀 (데스크탑) ── */
     .week-cell { background: #fff7ed; border-radius: 9px; padding: 7px 8px; display: flex; flex-direction: column; gap: 3px; overflow: hidden; border: 1.5px solid #fed7aa; min-height: 0; }
     .week-cell.empty-week { background: transparent; border: none; }
     .week-label { font-size: 0.56em; font-weight: 800; color: #fb923c; letter-spacing: 1px; }
-    .week-item { display: flex; align-items: center; gap: 3px; font-size: 0.6em; }
-    .week-item .lbl { font-weight: 700; width: 24px; flex-shrink: 0; }
-    .week-item.card .lbl { color: #ea580c; }
-    .week-item.cash .lbl { color: #43a047; }
-    .week-item.exp  .lbl { color: #ef5350; }
-    .week-item .val { color: #444; font-weight: 600; }
+    .week-loc-row { display: flex; align-items: center; gap: 3px; font-size: 0.58em; line-height: 1.5; }
+    .week-loc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .week-loc-dot.bp { background: #f97316; }
+    .week-loc-dot.yd { background: #7c3aed; }
+    .week-loc-name { font-weight: 800; color: #888; width: 26px; flex-shrink: 0; }
+    .week-loc-net { font-weight: 700; }
+    .week-loc-net.positive { color: #43a047; }
+    .week-loc-net.negative { color: #ef5350; }
     .week-divider { height: 1px; background: #fed7aa; margin: 1px 0; }
-    .week-revenue-row { font-size: 0.6em; font-weight: 700; color: #ea580c; }
-    .week-expense-row { font-size: 0.6em; font-weight: 700; color: #ef5350; }
     .week-net-row { font-size: 0.65em; font-weight: 900; }
     .week-net-row.positive { color: #43a047; }
     .week-net-row.negative { color: #ef5350; }
@@ -209,8 +216,8 @@
       }
       .week-bar-label { font-size: 0.6em; font-weight: 800; color: #fb923c; }
       .week-bar-sep { font-size: 0.6em; color: #ddd; }
-      .week-bar-rev { font-size: 0.63em; font-weight: 700; color: #ea580c; }
-      .week-bar-exp { font-size: 0.63em; font-weight: 700; color: #ef5350; }
+      .week-bar-bp { font-size: 0.63em; font-weight: 700; color: #ea580c; }
+      .week-bar-yd { font-size: 0.63em; font-weight: 700; color: #7c3aed; }
       .week-bar-net { font-size: 0.68em; font-weight: 900; margin-left: 2px; }
       .week-bar-net.positive { color: #43a047; }
       .week-bar-net.negative { color: #ef5350; }
@@ -237,6 +244,11 @@
       <div style="font-size:0.7em;font-weight:800;color:#ea580c;letter-spacing:0.5px;">의류 매출 관리</div>
     </div>
     <button class="nav-btn" id="btn-next">&#8594;</button>
+  </div>
+  <div class="loc-tabs">
+    <button class="loc-tab active" data-tab="all" onclick="setLocTab('all')">전체</button>
+    <button class="loc-tab" data-tab="부평" onclick="setLocTab('부평')">부평</button>
+    <button class="loc-tab" data-tab="영등포" onclick="setLocTab('영등포')">영등포</button>
   </div>
   <div class="monthly-summary">
     <div class="summary-item">
@@ -414,6 +426,7 @@
   let isSaving     = false;
 
   let sales = {};
+  let currentLocTab = 'all';
 
   const USE_FIREBASE = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
   let db = null;
@@ -490,6 +503,8 @@
     if (week.length) weeks.push(week);
 
     let monthRevenue = 0, monthExpense = 0, monthDays = 0;
+    let monthRevBp = 0, monthExpBp = 0, monthDaysBp = 0;
+    let monthRevYd = 0, monthExpYd = 0, monthDaysYd = 0;
 
     weeks.forEach(wk => {
       const wkGroup = document.createElement('div');
@@ -498,6 +513,7 @@
       daysRow.className = 'days-row';
 
       let wkRev = 0, wkExp = 0, hasData = false, daysWithData = 0;
+      let wkRevBp = 0, wkExpBp = 0, wkRevYd = 0, wkExpYd = 0;
 
       wk.forEach(d => {
         const cell = document.createElement('div');
@@ -537,14 +553,22 @@
           // 장소 배지
           if (entry && entry.location) {
             const badge = document.createElement('div');
-            badge.className = 'cell-location';
+            badge.className = 'cell-location ' + (entry.location === '부평' ? 'bp' : 'yd');
             badge.textContent = entry.location;
             cell.appendChild(badge);
           }
 
           if (entry && (revenue > 0 || expense > 0)) {
+            const loc = entry.location || '';
             wkRev += revenue; wkExp += expense; hasData = true; daysWithData++;
             monthRevenue += revenue; monthExpense += expense; monthDays++;
+            if (loc === '부평') {
+              wkRevBp += revenue; wkExpBp += expense;
+              monthRevBp += revenue; monthExpBp += expense; monthDaysBp++;
+            } else if (loc === '영등포') {
+              wkRevYd += revenue; wkExpYd += expense;
+              monthRevYd += revenue; monthExpYd += expense; monthDaysYd++;
+            }
 
             // 순수익
             const netEl = document.createElement('div');
@@ -584,12 +608,24 @@
         weekCell.className = 'week-cell empty-week';
       } else {
         const wkNet = wkRev - wkExp;
+        const wkNetBp = wkRevBp - wkExpBp;
+        const wkNetYd = wkRevYd - wkExpYd;
         const wkAvg = daysWithData > 0 ? Math.round(wkNet / daysWithData) : 0;
         weekCell.className = 'week-cell';
         weekCell.innerHTML = `
           <div class="week-label">주간</div>
-          <div class="week-revenue-row">수익 ${fmtMoney(wkRev)}</div>
-          ${wkExp > 0 ? `<div class="week-expense-row">지출 -${fmtMoney(wkExp)}</div>` : ''}
+          ${wkRevBp > 0 || wkExpBp > 0 ? `
+            <div class="week-loc-row">
+              <span class="week-loc-dot bp"></span>
+              <span class="week-loc-name">부평</span>
+              <span class="week-loc-net ${wkNetBp >= 0 ? 'positive' : 'negative'}">${fmtMoney(wkNetBp)}</span>
+            </div>` : ''}
+          ${wkRevYd > 0 || wkExpYd > 0 ? `
+            <div class="week-loc-row">
+              <span class="week-loc-dot yd"></span>
+              <span class="week-loc-name">영등포</span>
+              <span class="week-loc-net ${wkNetYd >= 0 ? 'positive' : 'negative'}">${fmtMoney(wkNetYd)}</span>
+            </div>` : ''}
           <div class="week-divider"></div>
           <div class="week-net-row ${wkNet >= 0 ? 'positive' : 'negative'}">${fmtMoney(wkNet)}</div>
           <div class="week-avg-row">일평균 <span>${fmtMoney(wkAvg)}</span></div>`;
@@ -600,29 +636,41 @@
       // 모바일 주간바
       if (hasData) {
         const wkNet = wkRev - wkExp;
+        const wkNetBp = wkRevBp - wkExpBp;
+        const wkNetYd = wkRevYd - wkExpYd;
         const wkAvg = daysWithData > 0 ? Math.round(wkNet / daysWithData) : 0;
         const bar = document.createElement('div');
         bar.className = 'week-bar';
         bar.innerHTML = `
           <span class="week-bar-label">주간</span>
-          <span class="week-bar-rev">수익 ${fmtMoney(wkRev)}</span>
-          ${wkExp > 0 ? `<span class="week-bar-sep">|</span><span class="week-bar-exp">지출 -${fmtMoney(wkExp)}</span>` : ''}
+          ${wkRevBp > 0 || wkExpBp > 0 ? `<span class="week-bar-sep">|</span><span class="week-bar-bp">부평 ${fmtMoney(wkNetBp)}</span>` : ''}
+          ${wkRevYd > 0 || wkExpYd > 0 ? `<span class="week-bar-sep">|</span><span class="week-bar-yd">영등포 ${fmtMoney(wkNetYd)}</span>` : ''}
           <span class="week-bar-sep">|</span>
-          <span class="week-bar-net ${wkNet >= 0 ? 'positive' : 'negative'}">${fmtMoney(wkNet)}</span>
+          <span class="week-bar-net ${wkNet >= 0 ? 'positive' : 'negative'}">합계 ${fmtMoney(wkNet)}</span>
           <span class="week-bar-avg">일평균 <span>${fmtMoney(wkAvg)}</span></span>`;
         wkGroup.appendChild(bar);
       }
       wrap.appendChild(wkGroup);
     });
 
-    // 월간 요약
-    const monthNet = monthRevenue - monthExpense;
-    document.getElementById('sum-revenue').textContent = monthRevenue > 0 ? fmtMoneyFull(monthRevenue) : '-';
-    document.getElementById('sum-expense').textContent = monthExpense > 0 ? fmtMoneyFull(monthExpense) : '-';
+    // 월간 요약 (탭 필터)
+    let dispRev, dispExp, dispDays;
+    if (currentLocTab === '부평')    { dispRev = monthRevBp; dispExp = monthExpBp; dispDays = monthDaysBp; }
+    else if (currentLocTab === '영등포') { dispRev = monthRevYd; dispExp = monthExpYd; dispDays = monthDaysYd; }
+    else                             { dispRev = monthRevenue; dispExp = monthExpense; dispDays = monthDays; }
+    const dispNet = dispRev - dispExp;
+    document.getElementById('sum-revenue').textContent = dispRev > 0 ? fmtMoneyFull(dispRev) : '-';
+    document.getElementById('sum-expense').textContent = dispExp > 0 ? fmtMoneyFull(dispExp) : '-';
     const netEl = document.getElementById('sum-net');
-    netEl.textContent = (monthRevenue > 0 || monthExpense > 0) ? fmtMoneyFull(monthNet) : '-';
-    netEl.className = 'summary-value net' + (monthNet < 0 ? ' negative' : '');
-    document.getElementById('sum-days').textContent = monthDays > 0 ? monthDays + '일' : '-';
+    netEl.textContent = (dispRev > 0 || dispExp > 0) ? fmtMoneyFull(dispNet) : '-';
+    netEl.className = 'summary-value net' + (dispNet < 0 ? ' negative' : '');
+    document.getElementById('sum-days').textContent = dispDays > 0 ? dispDays + '일' : '-';
+  }
+
+  function setLocTab(tab) {
+    currentLocTab = tab;
+    document.querySelectorAll('.loc-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    buildCalendar();
   }
 
   // ── 콤마 포맷 ──
