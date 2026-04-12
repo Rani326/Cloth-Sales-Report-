@@ -73,6 +73,7 @@
     .cell-row { display: flex; align-items: center; gap: 3px; font-size: 0.6em; line-height: 1.3; overflow: hidden; }
     .cell-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
     .cell-dot.card { background: #ea580c; }
+    .cell-dot.transfer { background: #2563eb; }
     .cell-dot.cash { background: #43a047; }
     .cell-dot.expense { background: #ef5350; }
     .cell-amount { color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -126,6 +127,7 @@
     .input-row { display: flex; flex-direction: column; gap: 4px; }
     .input-row label { font-size: 0.7em; font-weight: 700; letter-spacing: 0.5px; }
     .input-row.card label       { color: #ea580c; }
+    .input-row.transfer label   { color: #2563eb; }
     .input-row.cash label       { color: #43a047; }
     .input-row.rent label       { color: #ef5350; }
     .input-row.salary label     { color: #8b5cf6; }
@@ -136,6 +138,7 @@
     .input-wrap { display: flex; align-items: center; border: 1.5px solid #eee; border-radius: 10px; background: #fafafa; overflow: hidden; transition: border 0.15s; }
     .input-wrap:focus-within { border-color: #f97316; background: #fff; }
     .input-wrap.card-wrap:focus-within     { border-color: #ea580c; }
+    .input-wrap.transfer-wrap:focus-within { border-color: #2563eb; }
     .input-wrap.cash-wrap:focus-within     { border-color: #43a047; }
     .input-wrap.rent-wrap:focus-within     { border-color: #ef5350; }
     .input-wrap.salary-wrap:focus-within   { border-color: #8b5cf6; }
@@ -152,7 +155,7 @@
     .modal-summary-box.rev-box { background: #fff7ed; }
     .modal-summary-box.exp-box { background: #fff0f0; }
     .modal-summary-box-label { font-size: 0.65em; font-weight: 700; margin-bottom: 2px; }
-    .rev-box .modal-summary-box-label { color: #8890e0; }
+    .rev-box .modal-summary-box-label { color: #ea580c; }
     .exp-box .modal-summary-box-label { color: #ef9090; }
     .modal-summary-box-value { font-size: 0.9em; font-weight: 900; }
     .rev-box .modal-summary-box-value { color: #ea580c; }
@@ -175,6 +178,18 @@
     .btn-cancel { padding: 13px 16px; background: #f0f2f8; color: #888; border: none; border-radius: 10px; font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-cancel:hover { background: #e2e4f0; }
 
+
+    /* ── 비밀번호 오버레이 ── */
+    .pw-overlay { position: fixed; inset: 0; background: #f0f2f8; z-index: 999; display: flex; align-items: center; justify-content: center; }
+    .pw-overlay.hidden { display: none; }
+    .pw-box { background: #fff; border-radius: 20px; padding: 36px 28px; width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 12px; text-align: center; }
+    .pw-title { font-size: 1.1em; font-weight: 800; color: #2d2d2d; }
+    .pw-sub { font-size: 0.78em; color: #aaa; font-weight: 600; margin-top: -4px; }
+    .pw-input-wrap input { width: 100%; border: 1.5px solid #fed7aa; border-radius: 10px; padding: 12px 14px; font-size: 1em; font-family: inherit; outline: none; text-align: center; letter-spacing: 4px; transition: border 0.15s; }
+    .pw-input-wrap input:focus { border-color: #f97316; }
+    .pw-error { font-size: 0.75em; color: #ef5350; font-weight: 600; min-height: 18px; }
+    .pw-btn { padding: 13px; background: #f97316; color: #fff; border: none; border-radius: 10px; font-size: 0.95em; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .pw-btn:hover { background: #c2540a; }
 
     /* ── Firebase 상태 ── */
     .fb-status { position: fixed; bottom: 14px; right: 14px; background: #fff; border-radius: 20px; padding: 5px 11px; font-size: 0.68em; font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 6px; z-index: 50; }
@@ -235,6 +250,18 @@
   </style>
 </head>
 <body>
+
+<div class="pw-overlay" id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-title">🧥 의류 매출 관리</div>
+    <div class="pw-sub">비밀번호를 입력해주세요</div>
+    <div class="pw-input-wrap">
+      <input type="password" id="pw-input" placeholder="••••" />
+    </div>
+    <div class="pw-error" id="pw-error"></div>
+    <button class="pw-btn" onclick="checkPassword()">확인</button>
+  </div>
+</div>
 
 <div class="header">
   <div class="header-top">
@@ -303,6 +330,13 @@
           <label>카드 매출</label>
           <div class="input-wrap card-wrap">
             <input type="text" inputmode="numeric" id="input-card" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+        <div class="input-row transfer">
+          <label>계좌이체</label>
+          <div class="input-wrap transfer-wrap">
+            <input type="text" inputmode="numeric" id="input-transfer" placeholder="0" />
             <span class="input-unit">원</span>
           </div>
         </div>
@@ -403,6 +437,24 @@
 </div>
 
 <script>
+  const PASSWORD = '1225'; // ← 비밀번호 변경 시 여기만 수정
+
+  function checkPassword() {
+    const input = document.getElementById('pw-input').value;
+    if (input === PASSWORD) {
+      sessionStorage.setItem('cloth-auth', '1');
+      document.getElementById('pw-overlay').classList.add('hidden');
+    } else {
+      document.getElementById('pw-error').textContent = '비밀번호가 틀렸습니다.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  }
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+  if (sessionStorage.getItem('cloth-auth') === '1') {
+    document.getElementById('pw-overlay').classList.add('hidden');
+  }
+
   const firebaseConfig = {
     apiKey:            "AIzaSyC0-fkZLIBHdkkLqeWl-mXeBqbaN7dHSmk",
     authDomain:        "firestore-database-64834.firebaseapp.com",
@@ -525,6 +577,7 @@
           const entry = sales[key];
 
           const card     = entry ? (entry.card     || 0) : 0;
+          const transfer = entry ? (entry.transfer || 0) : 0;
           const cash     = entry ? (entry.cash     || 0) : 0;
           const rent     = entry ? (entry.rent     || 0) : 0;
           const salary   = entry ? (entry.salary   || 0) : 0;
@@ -532,7 +585,7 @@
           const vat      = entry ? (entry.vat      || 0) : 0;
           const mgmt     = entry ? (entry.mgmt     || 0) : 0;
           const etc      = entry ? (entry.etc      || 0) : 0;
-          const revenue  = card + cash;
+          const revenue  = card + transfer + cash;
           const expense  = rent + salary + purchase + vat + mgmt + etc;
           const net      = revenue - expense;
 
@@ -576,11 +629,17 @@
             netEl.textContent = fmtMoney(net);
             cell.appendChild(netEl);
 
-            // 카드/현금
+            // 카드/계좌이체/현금
             if (card > 0) {
               const row = document.createElement('div');
               row.className = 'cell-row';
               row.innerHTML = `<span class="cell-dot card"></span><span class="cell-amount">${fmtMoney(card)}</span>`;
+              cell.appendChild(row);
+            }
+            if (transfer > 0) {
+              const row = document.createElement('div');
+              row.className = 'cell-row';
+              row.innerHTML = `<span class="cell-dot transfer"></span><span class="cell-amount">${fmtMoney(transfer)}</span>`;
               cell.appendChild(row);
             }
             if (cash > 0) {
@@ -681,7 +740,7 @@
   function parseComma(id) {
     return parseInt((document.getElementById(id).value || '').replace(/[^0-9]/g, '')) || 0;
   }
-  ['input-card','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => formatComma(e.target));
   });
 
@@ -689,6 +748,7 @@
   function getInputs() {
     return {
       card:     parseComma('input-card'),
+      transfer: parseComma('input-transfer'),
       cash:     parseComma('input-cash'),
       rent:     parseComma('input-rent'),
       salary:   parseComma('input-salary'),
@@ -706,8 +766,8 @@
   }
 
   function updateModalSummary() {
-    const { card, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
-    const revenue = card + cash;
+    const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
+    const revenue = card + transfer + cash;
     const expense = rent + salary + purchase + vat + mgmt + etc;
     const net     = revenue - expense;
     document.getElementById('modal-rev-value').textContent = fmtMoneyFull(revenue);
@@ -717,7 +777,7 @@
     netBox.className = 'modal-net ' + (net >= 0 ? 'positive' : 'negative');
   }
 
-  ['input-card','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateModalSummary);
   });
 
@@ -726,6 +786,7 @@
     const entry = sales[key] || {};
     document.getElementById('modal-date').textContent = `${currentYear}년 ${MONTH_NAMES[month]} ${day}일 (${DAY_KO[dow]})`;
     document.getElementById('input-card').value     = entry.card     ? entry.card.toLocaleString('ko-KR')     : '';
+    document.getElementById('input-transfer').value = entry.transfer ? entry.transfer.toLocaleString('ko-KR') : '';
     document.getElementById('input-cash').value     = entry.cash     ? entry.cash.toLocaleString('ko-KR')     : '';
     document.getElementById('input-rent').value     = entry.rent     ? entry.rent.toLocaleString('ko-KR')     : '';
     document.getElementById('input-salary').value   = entry.salary   ? entry.salary.toLocaleString('ko-KR')   : '';
@@ -747,11 +808,11 @@
 
   async function saveEntry() {
     if (isSaving) return;
-    const { card, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
-    if (card === 0 && cash === 0 && rent === 0 && salary === 0 && purchase === 0 && vat === 0 && mgmt === 0 && etc === 0) { deleteEntry(); return; }
+    const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
+    if (card === 0 && transfer === 0 && cash === 0 && rent === 0 && salary === 0 && purchase === 0 && vat === 0 && mgmt === 0 && etc === 0) { deleteEntry(); return; }
     isSaving = true;
     document.getElementById('btn-save').disabled = true;
-    const data = { card, cash, rent, salary, purchase, vat, mgmt, etc, location: selectedLoc };
+    const data = { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc, location: selectedLoc };
     if (USE_FIREBASE && db) {
       try { await db.collection('cloth-sales').doc(selectedKey).set(data); }
       catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('btn-save').disabled = false; isSaving = false; return; }
