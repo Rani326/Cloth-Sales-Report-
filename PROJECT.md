@@ -1,7 +1,7 @@
-# 매출 관리 — 프로젝트 메모
+# 의류 매출 관리 — 프로젝트 메모
 
 ## 파일 위치
-- `/Users/miran/Documents/Sales-Report/index.html` (서버 없이 브라우저로 바로 열기)
+- `Cloth-Sales-Report/index.html` (서버 없이 브라우저로 바로 열기)
 
 ## 기능
 - 월별 캘린더 뷰 (← → 화살표로 월 이동)
@@ -29,7 +29,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /sales/{document=**} {
+    match /cloth-sales/{document=**} {
       allow read, write: if true;
     }
   }
@@ -38,7 +38,7 @@ service cloud.firestore {
 
 ## 데이터 형식 (Firestore & localStorage 동일)
 ```json
-컬렉션: sales
+컬렉션: cloth-sales
 문서 ID: "2026-04-06"
 필드: { "card": 1200000, "cash": 350000 }
 ```
@@ -47,6 +47,11 @@ service cloud.firestore {
 - 파란 점 🔵 = 카드
 - 초록 점 🟢 = 현금
 - 굵은 숫자 = 일 합계
+
+## Sales-Report와의 차이점
+- 색상 테마: 주황색 계열
+- Firebase 컬렉션: `cloth-sales` (기존 `sales`와 완전 분리)
+- localStorage 키: `cloth-sales-data` (기존 데이터와 충돌 없음)
 
 ## 나중에 하고 싶은 것
 - 매출 페이지 비밀번호 잠금 (Firebase Auth 이용)
