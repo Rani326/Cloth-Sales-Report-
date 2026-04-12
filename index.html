@@ -221,7 +221,7 @@
       .day-header.week-col { display: none; }
       .calendar-wrap { overflow: visible; flex: none; padding: 4px; }
       .week-group { flex: none; margin-bottom: 4px; }
-      .days-row { grid-template-columns: repeat(7, 1fr); flex: none; height: 76px; gap: 3px; }
+      .days-row { grid-template-columns: repeat(7, 1fr); flex: none; height: 88px; gap: 3px; }
       .week-cell { display: none; }
       /* 모바일 주간바 */
       .week-bar {
@@ -617,22 +617,22 @@
 
             // 부평 행
             if (bp.revenue > 0 || bp.expense > 0) {
-              const bpNet = document.createElement('div');
-              bpNet.className = 'cell-row';
-              bpNet.innerHTML = `<span class="cell-location bp">부평</span><span class="cell-amount" style="margin-left:auto;font-weight:800;font-size:1.1em;color:${bp.net>=0?'#43a047':'#ef5350'}">${fmtMoney(bp.net)}</span>`;
-              cell.appendChild(bpNet);
+              const bpEl = document.createElement('div');
+              bpEl.style.cssText = 'display:flex;align-items:center;gap:2px;font-size:0.58em;line-height:1.3;overflow:hidden;';
+              bpEl.innerHTML = `<span style="font-size:0.9em;font-weight:800;background:#fff7ed;color:#ea580c;border-radius:3px;padding:0 3px;flex-shrink:0;">부평</span><span style="font-weight:800;color:${bp.net>=0?'#43a047':'#ef5350'};margin-left:auto;white-space:nowrap;">${fmtMoney(bp.net)}</span>`;
+              cell.appendChild(bpEl);
             }
             // 영등포 행
             if (yd.revenue > 0 || yd.expense > 0) {
-              const ydNet = document.createElement('div');
-              ydNet.className = 'cell-row';
-              ydNet.innerHTML = `<span class="cell-location yd">영등포</span><span class="cell-amount" style="margin-left:auto;font-weight:800;font-size:1.1em;color:${yd.net>=0?'#43a047':'#ef5350'}">${fmtMoney(yd.net)}</span>`;
-              cell.appendChild(ydNet);
+              const ydEl = document.createElement('div');
+              ydEl.style.cssText = 'display:flex;align-items:center;gap:2px;font-size:0.58em;line-height:1.3;overflow:hidden;';
+              ydEl.innerHTML = `<span style="font-size:0.9em;font-weight:800;background:#f5f3ff;color:#7c3aed;border-radius:3px;padding:0 3px;flex-shrink:0;">영등포</span><span style="font-weight:800;color:${yd.net>=0?'#43a047':'#ef5350'};margin-left:auto;white-space:nowrap;">${fmtMoney(yd.net)}</span>`;
+              cell.appendChild(ydEl);
             }
             // 합계 (둘 다 있을 때만)
             if (bp.revenue + bp.expense > 0 && yd.revenue + yd.expense > 0) {
               const totEl = document.createElement('div');
-              totEl.className = 'cell-net ' + (totNet >= 0 ? 'positive' : 'negative');
+              totEl.style.cssText = `font-size:0.62em;font-weight:900;color:${totNet>=0?'#43a047':'#ef5350'};text-align:right;line-height:1.2;`;
               totEl.textContent = fmtMoney(totNet);
               cell.appendChild(totEl);
             }
