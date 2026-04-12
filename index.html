@@ -534,6 +534,14 @@
   }
 
 
+  function calcEntry(entry) {
+    if (!entry) return { revenue: 0, expense: 0, net: 0, card: 0, transfer: 0, cash: 0 };
+    const card = entry.card || 0, transfer = entry.transfer || 0, cash = entry.cash || 0;
+    const expense = (entry.rent||0) + (entry.salary||0) + (entry.purchase||0) + (entry.vat||0) + (entry.mgmt||0) + (entry.etc||0);
+    const revenue = card + transfer + cash;
+    return { revenue, expense, net: revenue - expense, card, transfer, cash };
+  }
+
   // ── 캘린더 렌더링 ──
   function buildCalendar() {
     const y = currentYear, m = currentMonth;
@@ -572,29 +580,20 @@
         if (d === null) {
           cell.className = 'day-cell empty';
         } else {
-          const key   = fmt(y, m+1, d);
-          const dow   = new Date(y, m, d).getDay();
-          const entry = sales[key];
-
-          const card     = entry ? (entry.card     || 0) : 0;
-          const transfer = entry ? (entry.transfer || 0) : 0;
-          const cash     = entry ? (entry.cash     || 0) : 0;
-          const rent     = entry ? (entry.rent     || 0) : 0;
-          const salary   = entry ? (entry.salary   || 0) : 0;
-          const purchase = entry ? (entry.purchase || 0) : 0;
-          const vat      = entry ? (entry.vat      || 0) : 0;
-          const mgmt     = entry ? (entry.mgmt     || 0) : 0;
-          const etc      = entry ? (entry.etc      || 0) : 0;
-          const revenue  = card + transfer + cash;
-          const expense  = rent + salary + purchase + vat + mgmt + etc;
-          const net      = revenue - expense;
+          const key    = fmt(y, m+1, d);
+          const dow    = new Date(y, m, d).getDay();
+          const bp     = calcEntry(sales[`${key}_부평`]);
+          const yd     = calcEntry(sales[`${key}_영등포`]);
+          const totRev = bp.revenue + yd.revenue;
+          const totExp = bp.expense + yd.expense;
+          const totNet = totRev - totExp;
+          const dayHasData = totRev > 0 || totExp > 0;
 
           let cls = 'day-cell';
           if (dow === 0) cls += ' sun';
           if (dow === 6) cls += ' sat';
           if (key === todayKey) cls += ' today';
-          if (entry && revenue > 0) cls += ' has-data';
-          if (entry && expense > 0) cls += ' has-expense';
+          if (dayHasData) { cls += ' has-data'; if (totExp > 0) cls += ' has-expense'; }
           cell.className = cls;
 
           // 날짜
@@ -603,57 +602,39 @@
           num.textContent = d;
           cell.appendChild(num);
 
-          // 장소 배지
-          if (entry && entry.location) {
-            const badge = document.createElement('div');
-            badge.className = 'cell-location ' + (entry.location === '부평' ? 'bp' : 'yd');
-            badge.textContent = entry.location;
-            cell.appendChild(badge);
-          }
-
-          if (entry && (revenue > 0 || expense > 0)) {
-            const loc = entry.location || '';
-            wkRev += revenue; wkExp += expense; hasData = true; daysWithData++;
-            monthRevenue += revenue; monthExpense += expense; monthDays++;
-            if (loc === '부평') {
-              wkRevBp += revenue; wkExpBp += expense;
-              monthRevBp += revenue; monthExpBp += expense; monthDaysBp++;
-            } else if (loc === '영등포') {
-              wkRevYd += revenue; wkExpYd += expense;
-              monthRevYd += revenue; monthExpYd += expense; monthDaysYd++;
+          if (dayHasData) {
+            hasData = true; daysWithData++;
+            wkRev += totRev; wkExp += totExp;
+            monthRevenue += totRev; monthExpense += totExp; monthDays++;
+            if (bp.revenue > 0 || bp.expense > 0) {
+              wkRevBp += bp.revenue; wkExpBp += bp.expense;
+              monthRevBp += bp.revenue; monthExpBp += bp.expense; monthDaysBp++;
+            }
+            if (yd.revenue > 0 || yd.expense > 0) {
+              wkRevYd += yd.revenue; wkExpYd += yd.expense;
+              monthRevYd += yd.revenue; monthExpYd += yd.expense; monthDaysYd++;
             }
 
-            // 순수익
-            const netEl = document.createElement('div');
-            netEl.className = 'cell-net ' + (net >= 0 ? 'positive' : 'negative');
-            netEl.textContent = fmtMoney(net);
-            cell.appendChild(netEl);
-
-            // 카드/계좌이체/현금
-            if (card > 0) {
-              const row = document.createElement('div');
-              row.className = 'cell-row';
-              row.innerHTML = `<span class="cell-dot card"></span><span class="cell-amount">${fmtMoney(card)}</span>`;
-              cell.appendChild(row);
+            // 부평 행
+            if (bp.revenue > 0 || bp.expense > 0) {
+              const bpNet = document.createElement('div');
+              bpNet.className = 'cell-row';
+              bpNet.innerHTML = `<span class="cell-location bp">부평</span><span class="cell-amount" style="margin-left:auto;font-weight:800;font-size:1.1em;color:${bp.net>=0?'#43a047':'#ef5350'}">${fmtMoney(bp.net)}</span>`;
+              cell.appendChild(bpNet);
             }
-            if (transfer > 0) {
-              const row = document.createElement('div');
-              row.className = 'cell-row';
-              row.innerHTML = `<span class="cell-dot transfer"></span><span class="cell-amount">${fmtMoney(transfer)}</span>`;
-              cell.appendChild(row);
+            // 영등포 행
+            if (yd.revenue > 0 || yd.expense > 0) {
+              const ydNet = document.createElement('div');
+              ydNet.className = 'cell-row';
+              ydNet.innerHTML = `<span class="cell-location yd">영등포</span><span class="cell-amount" style="margin-left:auto;font-weight:800;font-size:1.1em;color:${yd.net>=0?'#43a047':'#ef5350'}">${fmtMoney(yd.net)}</span>`;
+              cell.appendChild(ydNet);
             }
-            if (cash > 0) {
-              const row = document.createElement('div');
-              row.className = 'cell-row';
-              row.innerHTML = `<span class="cell-dot cash"></span><span class="cell-amount">${fmtMoney(cash)}</span>`;
-              cell.appendChild(row);
-            }
-            // 지출
-            if (expense > 0) {
-              const row = document.createElement('div');
-              row.className = 'cell-row';
-              row.innerHTML = `<span class="cell-dot expense"></span><span class="cell-amount neg">-${fmtMoney(expense)}</span>`;
-              cell.appendChild(row);
+            // 합계 (둘 다 있을 때만)
+            if (bp.revenue + bp.expense > 0 && yd.revenue + yd.expense > 0) {
+              const totEl = document.createElement('div');
+              totEl.className = 'cell-net ' + (totNet >= 0 ? 'positive' : 'negative');
+              totEl.textContent = fmtMoney(totNet);
+              cell.appendChild(totEl);
             }
           }
           cell.addEventListener('click', () => openModal(key, m, d, dow));
@@ -763,6 +744,20 @@
     selectedLoc = loc;
     document.getElementById('loc-btn-bupyeong').classList.toggle('active', loc === '부평');
     document.getElementById('loc-btn-yeongdeungpo').classList.toggle('active', loc === '영등포');
+    if (selectedKey) {
+      const entry = sales[`${selectedKey}_${loc}`] || {};
+      document.getElementById('input-card').value     = entry.card     ? entry.card.toLocaleString('ko-KR')     : '';
+      document.getElementById('input-transfer').value = entry.transfer ? entry.transfer.toLocaleString('ko-KR') : '';
+      document.getElementById('input-cash').value     = entry.cash     ? entry.cash.toLocaleString('ko-KR')     : '';
+      document.getElementById('input-rent').value     = entry.rent     ? entry.rent.toLocaleString('ko-KR')     : '';
+      document.getElementById('input-salary').value   = entry.salary   ? entry.salary.toLocaleString('ko-KR')   : '';
+      document.getElementById('input-purchase').value = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
+      document.getElementById('input-vat').value      = entry.vat      ? entry.vat.toLocaleString('ko-KR')      : '';
+      document.getElementById('input-mgmt').value     = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
+      document.getElementById('input-etc').value      = entry.etc      ? entry.etc.toLocaleString('ko-KR')      : '';
+      document.getElementById('btn-delete').style.display = sales[`${selectedKey}_${loc}`] ? 'inline-block' : 'none';
+      updateModalSummary();
+    }
   }
 
   function updateModalSummary() {
@@ -783,23 +778,9 @@
 
   function openModal(key, month, day, dow) {
     selectedKey = key;
-    const entry = sales[key] || {};
     document.getElementById('modal-date').textContent = `${currentYear}년 ${MONTH_NAMES[month]} ${day}일 (${DAY_KO[dow]})`;
-    document.getElementById('input-card').value     = entry.card     ? entry.card.toLocaleString('ko-KR')     : '';
-    document.getElementById('input-transfer').value = entry.transfer ? entry.transfer.toLocaleString('ko-KR') : '';
-    document.getElementById('input-cash').value     = entry.cash     ? entry.cash.toLocaleString('ko-KR')     : '';
-    document.getElementById('input-rent').value     = entry.rent     ? entry.rent.toLocaleString('ko-KR')     : '';
-    document.getElementById('input-salary').value   = entry.salary   ? entry.salary.toLocaleString('ko-KR')   : '';
-    document.getElementById('input-purchase').value = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
-    document.getElementById('input-vat').value      = entry.vat      ? entry.vat.toLocaleString('ko-KR')      : '';
-    document.getElementById('input-mgmt').value     = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
-    document.getElementById('input-etc').value      = entry.etc      ? entry.etc.toLocaleString('ko-KR')      : '';
-    document.getElementById('btn-delete').style.display = sales[key] ? 'inline-block' : 'none';
     document.getElementById('btn-save').disabled = false;
-
-    setModalLoc(entry.location || '부평');
-
-    updateModalSummary();
+    setModalLoc(selectedLoc);
     document.getElementById('modal-overlay').classList.add('open');
     setTimeout(() => document.getElementById('input-card').focus(), 50);
   }
@@ -809,15 +790,16 @@
   async function saveEntry() {
     if (isSaving) return;
     const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
+    const fsKey = `${selectedKey}_${selectedLoc}`;
     if (card === 0 && transfer === 0 && cash === 0 && rent === 0 && salary === 0 && purchase === 0 && vat === 0 && mgmt === 0 && etc === 0) { deleteEntry(); return; }
     isSaving = true;
     document.getElementById('btn-save').disabled = true;
-    const data = { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc, location: selectedLoc };
+    const data = { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc };
     if (USE_FIREBASE && db) {
-      try { await db.collection('cloth-sales').doc(selectedKey).set(data); }
+      try { await db.collection('cloth-sales').doc(fsKey).set(data); }
       catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('btn-save').disabled = false; isSaving = false; return; }
     } else {
-      sales[selectedKey] = data;
+      sales[fsKey] = data;
       localStorage.setItem(LS_KEY, JSON.stringify(sales));
       buildCalendar();
     }
@@ -825,11 +807,12 @@
   }
 
   async function deleteEntry() {
+    const fsKey = `${selectedKey}_${selectedLoc}`;
     if (USE_FIREBASE && db) {
-      try { await db.collection('cloth-sales').doc(selectedKey).delete(); }
+      try { await db.collection('cloth-sales').doc(fsKey).delete(); }
       catch(e) { alert('삭제 중 오류가 발생했습니다.'); return; }
     } else {
-      delete sales[selectedKey];
+      delete sales[fsKey];
       localStorage.setItem(LS_KEY, JSON.stringify(sales));
       buildCalendar();
     }
