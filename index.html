@@ -24,6 +24,19 @@
     .month-label span { color: #f97316; }
     .header-loc-badge { padding: 5px 12px; background: #fff7ed; color: #ea580c; border: 1.5px solid #fdba74; border-radius: 20px; font-size: 0.72em; font-weight: 700; }
 
+    /* ── 고정지출 버튼 ── */
+    .fixed-btn {
+      padding: 6px 12px; background: #fff0f0; color: #ef5350;
+      border: 1.5px solid #ffcdd2; border-radius: 20px;
+      font-size: 0.72em; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .fixed-btn:hover { background: #ffebee; border-color: #ef9a9a; }
+    .fixed-btn.has-data { background: #fff0f0; border-color: #ef5350; color: #ef5350; }
+    .fixed-btn-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef5350; display: none; }
+    .fixed-btn.has-data .fixed-btn-dot { display: inline-block; }
+
     /* ── 월간 요약 ── */
     .monthly-summary { display: flex; border-top: 1px solid #f0f0f0; border-top: none; }
     .summary-item { flex: 1; text-align: center; padding: 8px 4px; border-right: 1px solid #f0f0f0; }
@@ -192,6 +205,17 @@
     .btn-cancel { padding: 13px 16px; background: #f0f2f8; color: #888; border: none; border-radius: 10px; font-size: 0.88em; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-cancel:hover { background: #e2e4f0; }
 
+    /* ── 고정지출 모달 ── */
+    .fixed-overlay { display: none; position: fixed; inset: 0; background: rgba(30,30,60,0.45); z-index: 100; align-items: center; justify-content: center; }
+    .fixed-overlay.open { display: flex; }
+    .fixed-modal { background: #fff; border-radius: 20px; padding: 24px 22px; width: 350px; box-shadow: 0 20px 60px rgba(0,0,0,0.22); max-height: 90vh; overflow-y: auto; }
+    .fixed-modal-header { margin-bottom: 4px; }
+    .fixed-modal-month { font-size: 0.78em; color: #bbb; font-weight: 600; margin-bottom: 2px; }
+    .fixed-modal-title { font-size: 1.05em; font-weight: 800; margin-bottom: 6px; }
+    .fixed-modal-desc { font-size: 0.72em; color: #aaa; font-weight: 600; background: #fafafa; border-radius: 8px; padding: 8px 10px; margin-bottom: 14px; line-height: 1.6; }
+    .fixed-total-box { background: #fff5f5; border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .fixed-total-label { font-size: 0.8em; font-weight: 700; color: #888; }
+    .fixed-total-value { font-size: 1.1em; font-weight: 900; color: #ef5350; }
 
     /* ── 비밀번호 오버레이 ── */
     .pw-overlay { position: fixed; inset: 0; background: #f0f2f8; z-index: 999; display: flex; align-items: center; justify-content: center; }
@@ -227,7 +251,7 @@
       .header { padding: 10px 14px 0; }
       .month-label { font-size: 1em; }
       .nav-btn { width: 30px; height: 30px; font-size: 0.9em; }
-.monthly-summary { flex-wrap: wrap; }
+      .monthly-summary { flex-wrap: wrap; }
       .loc-summary { padding: 6px 8px 7px; gap: 6px; }
       .loc-summary-card { padding: 7px 8px; }
       .summary-item { flex: 0 0 50%; border-right: none; border-bottom: 1px solid #f0f0f0; }
@@ -260,8 +284,9 @@
       .cell-row { font-size: 0.55em; }
       .cell-location { font-size: 0.48em; }
       .modal { width: 92vw; padding: 20px 16px; }
-      .loc-modal { width: 92vw; padding: 20px 16px; }
+      .fixed-modal { width: 92vw; padding: 20px 16px; }
       .fb-status { bottom: 10px; right: 10px; font-size: 0.62em; padding: 4px 9px; }
+      .fixed-btn { font-size: 0.66em; padding: 5px 9px; }
     }
   </style>
 </head>
@@ -286,7 +311,13 @@
       <div class="month-label" id="month-label"></div>
       <div style="font-size:0.7em;font-weight:800;color:#ea580c;letter-spacing:0.5px;">의류 매출 관리</div>
     </div>
-    <button class="nav-btn" id="btn-next">&#8594;</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="fixed-btn" id="fixed-btn" onclick="openFixedModal()">
+        <span class="fixed-btn-dot" id="fixed-btn-dot"></span>
+        📌 고정지출
+      </button>
+      <button class="nav-btn" id="btn-next">&#8594;</button>
+    </div>
   </div>
   <div class="monthly-summary">
     <div class="summary-item">
@@ -337,7 +368,7 @@
 
 <div class="calendar-wrap" id="calendar-wrap"></div>
 
-<!-- 매출/지출 입력 모달 -->
+<!-- 매출/지출 입력 모달 (일별 변동 지출만) -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-date" id="modal-date"></div>
@@ -377,24 +408,10 @@
       </div>
     </div>
 
-    <!-- 지출 섹션 -->
+    <!-- 변동 지출 섹션 (사입비, 관리비만) -->
     <div class="modal-section">
-      <div class="modal-section-title expense">📦 지출</div>
+      <div class="modal-section-title expense">📦 변동 지출</div>
       <div class="input-group">
-        <div class="input-row rent">
-          <label>월세</label>
-          <div class="input-wrap rent-wrap">
-            <input type="text" inputmode="numeric" id="input-rent" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <div class="input-row salary">
-          <label>월급</label>
-          <div class="input-wrap salary-wrap">
-            <input type="text" inputmode="numeric" id="input-salary" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
         <div class="input-row purchase">
           <label>사입비</label>
           <div class="input-wrap purchase-wrap">
@@ -402,24 +419,10 @@
             <span class="input-unit">원</span>
           </div>
         </div>
-        <div class="input-row vat">
-          <label>부가세</label>
-          <div class="input-wrap vat-wrap">
-            <input type="text" inputmode="numeric" id="input-vat" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
         <div class="input-row mgmt">
           <label>관리비</label>
           <div class="input-wrap mgmt-wrap">
             <input type="text" inputmode="numeric" id="input-mgmt" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <div class="input-row etc-exp">
-          <label>기타</label>
-          <div class="input-wrap etc-wrap">
-            <input type="text" inputmode="numeric" id="input-etc" placeholder="0" />
             <span class="input-unit">원</span>
           </div>
         </div>
@@ -433,12 +436,12 @@
         <div class="modal-summary-box-value" id="modal-rev-value">0원</div>
       </div>
       <div class="modal-summary-box exp-box">
-        <div class="modal-summary-box-label">지출 합계</div>
+        <div class="modal-summary-box-label">변동 지출</div>
         <div class="modal-summary-box-value" id="modal-exp-value">0원</div>
       </div>
     </div>
     <div class="modal-net positive" id="modal-net">
-      <span class="modal-net-label">순수익</span>
+      <span class="modal-net-label">순수익 (변동기준)</span>
       <span class="modal-net-value" id="modal-net-value">0원</span>
     </div>
 
@@ -446,6 +449,71 @@
       <button class="btn-save" id="btn-save" onclick="saveEntry()">저장</button>
       <button class="btn-delete" id="btn-delete" onclick="deleteEntry()">삭제</button>
       <button class="btn-cancel" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 고정지출 모달 (월별 1회 등록) -->
+<div class="fixed-overlay" id="fixed-overlay">
+  <div class="fixed-modal">
+    <div class="fixed-modal-header">
+      <div class="fixed-modal-month" id="fixed-modal-month"></div>
+      <div class="fixed-modal-title">📌 고정지출 등록</div>
+    </div>
+    <div class="fixed-modal-desc">
+      월세, 월급, 세금, 기타는 매달 한 번만 등록해요.<br>
+      월간 요약에 자동으로 반영됩니다.
+    </div>
+
+    <!-- 장소 토글 -->
+    <div class="modal-loc-toggle">
+      <button class="loc-btn" id="fixed-loc-btn-bp" onclick="setFixedModalLoc('부평')">📍 부평</button>
+      <button class="loc-btn" id="fixed-loc-btn-yd" onclick="setFixedModalLoc('영등포')">📍 영등포</button>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title expense">🏠 고정 지출</div>
+      <div class="input-group">
+        <div class="input-row rent">
+          <label>월세</label>
+          <div class="input-wrap rent-wrap">
+            <input type="text" inputmode="numeric" id="fixed-input-rent" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+        <div class="input-row salary">
+          <label>월급</label>
+          <div class="input-wrap salary-wrap">
+            <input type="text" inputmode="numeric" id="fixed-input-salary" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+        <div class="input-row vat">
+          <label>세금 (부가세 등)</label>
+          <div class="input-wrap vat-wrap">
+            <input type="text" inputmode="numeric" id="fixed-input-vat" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+        <div class="input-row etc-exp">
+          <label>기타</label>
+          <div class="input-wrap etc-wrap">
+            <input type="text" inputmode="numeric" id="fixed-input-etc" placeholder="0" />
+            <span class="input-unit">원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fixed-total-box">
+      <span class="fixed-total-label">이달 고정지출 합계</span>
+      <span class="fixed-total-value" id="fixed-total-value">0원</span>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-save" id="fixed-btn-save" onclick="saveFixed()">저장</button>
+      <button class="btn-delete" id="fixed-btn-delete" onclick="deleteFixed()" style="display:none;">삭제</button>
+      <button class="btn-cancel" onclick="closeFixedModal()">취소</button>
     </div>
   </div>
 </div>
@@ -502,6 +570,7 @@
   let currentMonth = todayDate.getMonth();
   let selectedKey  = null;
   let selectedLoc  = '부평';
+  let selectedFixedLoc = '부평';
   let isSaving     = false;
 
   let sales = {};
@@ -543,6 +612,7 @@
   }
 
   function fmt(y, m, d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+  function fmtMonth(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
   function fmtMoney(n) {
     if (!n || n === 0) return '-';
     const abs = Math.abs(n);
@@ -559,13 +629,32 @@
     return (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('ko-KR') + '원';
   }
 
-
+  // ── 일별 변동 지출만 계산 (사입비, 관리비) ──
   function calcEntry(entry) {
     if (!entry) return { revenue: 0, expense: 0, net: 0, card: 0, transfer: 0, cash: 0 };
     const card = entry.card || 0, transfer = entry.transfer || 0, cash = entry.cash || 0;
-    const expense = (entry.rent||0) + (entry.salary||0) + (entry.purchase||0) + (entry.vat||0) + (entry.mgmt||0) + (entry.etc||0);
+    const expense = (entry.purchase || 0) + (entry.mgmt || 0);
     const revenue = card + transfer + cash;
     return { revenue, expense, net: revenue - expense, card, transfer, cash };
+  }
+
+  // ── 월별 고정지출 계산 ──
+  function calcFixed(y, m, loc) {
+    const key = `fixed_${fmtMonth(y, m)}_${loc}`;
+    const entry = sales[key] || {};
+    const total = (entry.rent || 0) + (entry.salary || 0) + (entry.vat || 0) + (entry.etc || 0);
+    return { total, rent: entry.rent||0, salary: entry.salary||0, vat: entry.vat||0, etc: entry.etc||0, hasData: total > 0 };
+  }
+
+  // ── 고정지출 버튼 상태 업데이트 ──
+  function updateFixedBtn() {
+    const fixedBp = calcFixed(currentYear, currentMonth, '부평');
+    const fixedYd = calcFixed(currentYear, currentMonth, '영등포');
+    const hasAny = fixedBp.total > 0 || fixedYd.total > 0;
+    const btn = document.getElementById('fixed-btn');
+    const dot = document.getElementById('fixed-btn-dot');
+    btn.classList.toggle('has-data', hasAny);
+    dot.style.display = hasAny ? 'inline-block' : 'none';
   }
 
   // ── 캘린더 렌더링 ──
@@ -719,7 +808,13 @@
       wrap.appendChild(wkGroup);
     });
 
-    // 월간 요약 (전체 합계)
+    // ── 고정지출 포함한 월간 요약 ──
+    const fixedBp = calcFixed(y, m, '부평');
+    const fixedYd = calcFixed(y, m, '영등포');
+    monthExpBp += fixedBp.total;
+    monthExpYd += fixedYd.total;
+    monthExpense += fixedBp.total + fixedYd.total;
+
     const totalNet = monthRevenue - monthExpense;
     document.getElementById('sum-revenue').textContent = monthRevenue > 0 ? fmtMoneyFull(monthRevenue) : '-';
     document.getElementById('sum-expense').textContent = monthExpense > 0 ? fmtMoneyFull(monthExpense) : '-';
@@ -741,6 +836,8 @@
     const ydNetEl = document.getElementById('yd-net');
     ydNetEl.textContent = (monthRevYd > 0 || monthExpYd > 0) ? fmtMoneyFull(ydNet) : '-';
     ydNetEl.className = 'net-val ' + (ydNet < 0 ? 'negative' : 'positive');
+
+    updateFixedBtn();
   }
 
   // ── 콤마 포맷 ──
@@ -751,22 +848,21 @@
   function parseComma(id) {
     return parseInt((document.getElementById(id).value || '').replace(/[^0-9]/g, '')) || 0;
   }
-  ['input-card','input-transfer','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => formatComma(e.target));
   });
+  ['fixed-input-rent','fixed-input-salary','fixed-input-vat','fixed-input-etc'].forEach(id => {
+    document.getElementById(id).addEventListener('input', e => { formatComma(e.target); updateFixedModalSummary(); });
+  });
 
-  // ── 모달 ──
+  // ── 일별 모달 ──
   function getInputs() {
     return {
       card:     parseComma('input-card'),
       transfer: parseComma('input-transfer'),
       cash:     parseComma('input-cash'),
-      rent:     parseComma('input-rent'),
-      salary:   parseComma('input-salary'),
       purchase: parseComma('input-purchase'),
-      vat:      parseComma('input-vat'),
       mgmt:     parseComma('input-mgmt'),
-      etc:      parseComma('input-etc'),
     };
   }
 
@@ -779,21 +875,17 @@
       document.getElementById('input-card').value     = entry.card     ? entry.card.toLocaleString('ko-KR')     : '';
       document.getElementById('input-transfer').value = entry.transfer ? entry.transfer.toLocaleString('ko-KR') : '';
       document.getElementById('input-cash').value     = entry.cash     ? entry.cash.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-rent').value     = entry.rent     ? entry.rent.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-salary').value   = entry.salary   ? entry.salary.toLocaleString('ko-KR')   : '';
       document.getElementById('input-purchase').value = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
-      document.getElementById('input-vat').value      = entry.vat      ? entry.vat.toLocaleString('ko-KR')      : '';
       document.getElementById('input-mgmt').value     = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-etc').value      = entry.etc      ? entry.etc.toLocaleString('ko-KR')      : '';
       document.getElementById('btn-delete').style.display = sales[`${selectedKey}_${loc}`] ? 'inline-block' : 'none';
       updateModalSummary();
     }
   }
 
   function updateModalSummary() {
-    const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
+    const { card, transfer, cash, purchase, mgmt } = getInputs();
     const revenue = card + transfer + cash;
-    const expense = rent + salary + purchase + vat + mgmt + etc;
+    const expense = purchase + mgmt;
     const net     = revenue - expense;
     document.getElementById('modal-rev-value').textContent = fmtMoneyFull(revenue);
     document.getElementById('modal-exp-value').textContent = fmtMoneyFull(expense);
@@ -802,7 +894,7 @@
     netBox.className = 'modal-net ' + (net >= 0 ? 'positive' : 'negative');
   }
 
-  ['input-card','input-transfer','input-cash','input-rent','input-salary','input-purchase','input-vat','input-mgmt','input-etc'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateModalSummary);
   });
 
@@ -819,12 +911,12 @@
 
   async function saveEntry() {
     if (isSaving) return;
-    const { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc } = getInputs();
+    const { card, transfer, cash, purchase, mgmt } = getInputs();
     const fsKey = `${selectedKey}_${selectedLoc}`;
-    if (card === 0 && transfer === 0 && cash === 0 && rent === 0 && salary === 0 && purchase === 0 && vat === 0 && mgmt === 0 && etc === 0) { deleteEntry(); return; }
+    if (card === 0 && transfer === 0 && cash === 0 && purchase === 0 && mgmt === 0) { deleteEntry(); return; }
     isSaving = true;
     document.getElementById('btn-save').disabled = true;
-    const data = { card, transfer, cash, rent, salary, purchase, vat, mgmt, etc };
+    const data = { card, transfer, cash, purchase, mgmt };
     if (USE_FIREBASE && db) {
       try { await db.collection('cloth-sales').doc(fsKey).set(data); }
       catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('btn-save').disabled = false; isSaving = false; return; }
@@ -847,6 +939,77 @@
       buildCalendar();
     }
     closeModal();
+  }
+
+  // ── 고정지출 모달 ──
+  function getFixedInputs() {
+    return {
+      rent:   parseComma('fixed-input-rent'),
+      salary: parseComma('fixed-input-salary'),
+      vat:    parseComma('fixed-input-vat'),
+      etc:    parseComma('fixed-input-etc'),
+    };
+  }
+
+  function updateFixedModalSummary() {
+    const { rent, salary, vat, etc } = getFixedInputs();
+    const total = rent + salary + vat + etc;
+    document.getElementById('fixed-total-value').textContent = fmtMoneyFull(total);
+  }
+
+  function setFixedModalLoc(loc) {
+    selectedFixedLoc = loc;
+    document.getElementById('fixed-loc-btn-bp').classList.toggle('active', loc === '부평');
+    document.getElementById('fixed-loc-btn-yd').classList.toggle('active', loc === '영등포');
+    const key = `fixed_${fmtMonth(currentYear, currentMonth)}_${loc}`;
+    const entry = sales[key] || {};
+    document.getElementById('fixed-input-rent').value   = entry.rent   ? entry.rent.toLocaleString('ko-KR')   : '';
+    document.getElementById('fixed-input-salary').value = entry.salary ? entry.salary.toLocaleString('ko-KR') : '';
+    document.getElementById('fixed-input-vat').value    = entry.vat    ? entry.vat.toLocaleString('ko-KR')    : '';
+    document.getElementById('fixed-input-etc').value    = entry.etc    ? entry.etc.toLocaleString('ko-KR')    : '';
+    document.getElementById('fixed-btn-delete').style.display = sales[key] ? 'inline-block' : 'none';
+    updateFixedModalSummary();
+  }
+
+  function openFixedModal() {
+    document.getElementById('fixed-modal-month').textContent =
+      `${currentYear}년 ${MONTH_NAMES[currentMonth]} 고정지출`;
+    document.getElementById('fixed-btn-save').disabled = false;
+    setFixedModalLoc(selectedFixedLoc);
+    document.getElementById('fixed-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('fixed-input-rent').focus(), 50);
+  }
+
+  function closeFixedModal() { document.getElementById('fixed-overlay').classList.remove('open'); }
+
+  async function saveFixed() {
+    const { rent, salary, vat, etc } = getFixedInputs();
+    const fsKey = `fixed_${fmtMonth(currentYear, currentMonth)}_${selectedFixedLoc}`;
+    if (rent === 0 && salary === 0 && vat === 0 && etc === 0) { deleteFixed(); return; }
+    document.getElementById('fixed-btn-save').disabled = true;
+    const data = { rent, salary, vat, etc };
+    if (USE_FIREBASE && db) {
+      try { await db.collection('cloth-sales').doc(fsKey).set(data); }
+      catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('fixed-btn-save').disabled = false; return; }
+    } else {
+      sales[fsKey] = data;
+      localStorage.setItem(LS_KEY, JSON.stringify(sales));
+      buildCalendar();
+    }
+    closeFixedModal();
+  }
+
+  async function deleteFixed() {
+    const fsKey = `fixed_${fmtMonth(currentYear, currentMonth)}_${selectedFixedLoc}`;
+    if (USE_FIREBASE && db) {
+      try { await db.collection('cloth-sales').doc(fsKey).delete(); }
+      catch(e) { alert('삭제 중 오류가 발생했습니다.'); return; }
+    } else {
+      delete sales[fsKey];
+      localStorage.setItem(LS_KEY, JSON.stringify(sales));
+      buildCalendar();
+    }
+    closeFixedModal();
   }
 
   async function migrateFromLocal() {
@@ -874,15 +1037,17 @@
   document.getElementById('btn-next').onclick = () => { if (currentMonth === 11) { currentMonth = 0; currentYear++; } else currentMonth++; buildCalendar(); };
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal(); }
+    if (e.key === 'Escape') { closeModal(); closeFixedModal(); }
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveEntry();
     const salesOpen = document.getElementById('modal-overlay').classList.contains('open');
-    if (!salesOpen) {
+    const fixedOpen = document.getElementById('fixed-overlay').classList.contains('open');
+    if (!salesOpen && !fixedOpen) {
       if (e.key === 'ArrowLeft')  document.getElementById('btn-prev').click();
       if (e.key === 'ArrowRight') document.getElementById('btn-next').click();
     }
   });
   document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  document.getElementById('fixed-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeFixedModal(); });
 </script>
 </body>
 </html>
