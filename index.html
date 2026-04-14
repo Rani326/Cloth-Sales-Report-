@@ -79,10 +79,24 @@
     .cell-amount { color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cell-amount.neg { color: #ef5350; }
 
-    /* ── 장소 탭 ── */
-    .loc-tabs { display: flex; gap: 6px; padding: 7px 20px; border-top: 1px solid #f0f0f0; }
-    .loc-tab { padding: 4px 12px; border: 1.5px solid #fed7aa; border-radius: 20px; background: #fff; color: #bbb; font-size: 0.68em; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-    .loc-tab.active { background: #f97316; color: #fff; border-color: #f97316; }
+    /* ── 지점별 요약 ── */
+    .loc-summary { display: flex; gap: 8px; padding: 7px 12px 8px; border-top: 1px solid #f0f0f0; }
+    .loc-summary-card { flex: 1; border-radius: 10px; padding: 8px 10px; }
+    .loc-summary-card.bp { background: #fff7ed; border: 1.5px solid #fed7aa; }
+    .loc-summary-card.yd { background: #f5f3ff; border: 1.5px solid #ddd6fe; }
+    .loc-summary-title { font-size: 0.68em; font-weight: 800; margin-bottom: 5px; }
+    .loc-summary-card.bp .loc-summary-title { color: #ea580c; }
+    .loc-summary-card.yd .loc-summary-title { color: #7c3aed; }
+    .loc-summary-row { display: flex; justify-content: space-between; font-size: 0.6em; color: #aaa; padding: 1px 0; }
+    .loc-summary-row .loc-val { font-weight: 700; color: #444; }
+    .loc-summary-row .loc-val.neg { color: #ef5350; }
+    .loc-summary-divider { height: 1px; margin: 4px 0; }
+    .loc-summary-card.bp .loc-summary-divider { background: #fed7aa; }
+    .loc-summary-card.yd .loc-summary-divider { background: #ddd6fe; }
+    .loc-summary-net-row { display: flex; justify-content: space-between; font-size: 0.65em; font-weight: 900; }
+    .loc-summary-net-row .lbl { color: #888; font-weight: 700; }
+    .loc-summary-net-row .net-val.positive { color: #43a047; }
+    .loc-summary-net-row .net-val.negative { color: #ef5350; }
 
     /* ── 주간합계 셀 (데스크탑) ── */
     .week-cell { background: #fff7ed; border-radius: 9px; padding: 7px 8px; display: flex; flex-direction: column; gap: 3px; overflow: hidden; border: 1.5px solid #fed7aa; min-height: 0; }
@@ -214,6 +228,8 @@
       .month-label { font-size: 1em; }
       .nav-btn { width: 30px; height: 30px; font-size: 0.9em; }
 .monthly-summary { flex-wrap: wrap; }
+      .loc-summary { padding: 6px 8px 7px; gap: 6px; }
+      .loc-summary-card { padding: 7px 8px; }
       .summary-item { flex: 0 0 50%; border-right: none; border-bottom: 1px solid #f0f0f0; }
       .summary-item:nth-child(odd) { border-right: 1px solid #f0f0f0; }
       .summary-item:last-child, .summary-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
@@ -272,11 +288,6 @@
     </div>
     <button class="nav-btn" id="btn-next">&#8594;</button>
   </div>
-  <div class="loc-tabs">
-    <button class="loc-tab active" data-tab="all" onclick="setLocTab('all')">전체</button>
-    <button class="loc-tab" data-tab="부평" onclick="setLocTab('부평')">부평</button>
-    <button class="loc-tab" data-tab="영등포" onclick="setLocTab('영등포')">영등포</button>
-  </div>
   <div class="monthly-summary">
     <div class="summary-item">
       <div class="summary-label">총 수익</div>
@@ -293,6 +304,22 @@
     <div class="summary-item">
       <div class="summary-label">영업일수</div>
       <div class="summary-value days" id="sum-days">-</div>
+    </div>
+  </div>
+  <div class="loc-summary">
+    <div class="loc-summary-card bp">
+      <div class="loc-summary-title">🟠 부평</div>
+      <div class="loc-summary-row"><span>수익</span><span class="loc-val" id="bp-rev">-</span></div>
+      <div class="loc-summary-row"><span>지출</span><span class="loc-val neg" id="bp-exp">-</span></div>
+      <div class="loc-summary-divider"></div>
+      <div class="loc-summary-net-row"><span class="lbl">순수익</span><span class="net-val positive" id="bp-net">-</span></div>
+    </div>
+    <div class="loc-summary-card yd">
+      <div class="loc-summary-title">🟣 영등포</div>
+      <div class="loc-summary-row"><span>수익</span><span class="loc-val" id="yd-rev">-</span></div>
+      <div class="loc-summary-row"><span>지출</span><span class="loc-val neg" id="yd-exp">-</span></div>
+      <div class="loc-summary-divider"></div>
+      <div class="loc-summary-net-row"><span class="lbl">순수익</span><span class="net-val positive" id="yd-net">-</span></div>
     </div>
   </div>
 </div>
@@ -478,7 +505,6 @@
   let isSaving     = false;
 
   let sales = {};
-  let currentLocTab = 'all';
 
   const USE_FIREBASE = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
   let db = null;
@@ -693,24 +719,28 @@
       wrap.appendChild(wkGroup);
     });
 
-    // 월간 요약 (탭 필터)
-    let dispRev, dispExp, dispDays;
-    if (currentLocTab === '부평')    { dispRev = monthRevBp; dispExp = monthExpBp; dispDays = monthDaysBp; }
-    else if (currentLocTab === '영등포') { dispRev = monthRevYd; dispExp = monthExpYd; dispDays = monthDaysYd; }
-    else                             { dispRev = monthRevenue; dispExp = monthExpense; dispDays = monthDays; }
-    const dispNet = dispRev - dispExp;
-    document.getElementById('sum-revenue').textContent = dispRev > 0 ? fmtMoneyFull(dispRev) : '-';
-    document.getElementById('sum-expense').textContent = dispExp > 0 ? fmtMoneyFull(dispExp) : '-';
+    // 월간 요약 (전체 합계)
+    const totalNet = monthRevenue - monthExpense;
+    document.getElementById('sum-revenue').textContent = monthRevenue > 0 ? fmtMoneyFull(monthRevenue) : '-';
+    document.getElementById('sum-expense').textContent = monthExpense > 0 ? fmtMoneyFull(monthExpense) : '-';
     const netEl = document.getElementById('sum-net');
-    netEl.textContent = (dispRev > 0 || dispExp > 0) ? fmtMoneyFull(dispNet) : '-';
-    netEl.className = 'summary-value net' + (dispNet < 0 ? ' negative' : '');
-    document.getElementById('sum-days').textContent = dispDays > 0 ? dispDays + '일' : '-';
-  }
+    netEl.textContent = (monthRevenue > 0 || monthExpense > 0) ? fmtMoneyFull(totalNet) : '-';
+    netEl.className = 'summary-value net' + (totalNet < 0 ? ' negative' : '');
+    document.getElementById('sum-days').textContent = monthDays > 0 ? monthDays + '일' : '-';
 
-  function setLocTab(tab) {
-    currentLocTab = tab;
-    document.querySelectorAll('.loc-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-    buildCalendar();
+    // 부평 / 영등포 카드
+    const bpNet = monthRevBp - monthExpBp;
+    const ydNet = monthRevYd - monthExpYd;
+    document.getElementById('bp-rev').textContent = monthRevBp > 0 ? fmtMoneyFull(monthRevBp) : '-';
+    document.getElementById('bp-exp').textContent = monthExpBp > 0 ? fmtMoneyFull(monthExpBp) : '-';
+    const bpNetEl = document.getElementById('bp-net');
+    bpNetEl.textContent = (monthRevBp > 0 || monthExpBp > 0) ? fmtMoneyFull(bpNet) : '-';
+    bpNetEl.className = 'net-val ' + (bpNet < 0 ? 'negative' : 'positive');
+    document.getElementById('yd-rev').textContent = monthRevYd > 0 ? fmtMoneyFull(monthRevYd) : '-';
+    document.getElementById('yd-exp').textContent = monthExpYd > 0 ? fmtMoneyFull(monthExpYd) : '-';
+    const ydNetEl = document.getElementById('yd-net');
+    ydNetEl.textContent = (monthRevYd > 0 || monthExpYd > 0) ? fmtMoneyFull(ydNet) : '-';
+    ydNetEl.className = 'net-val ' + (ydNet < 0 ? 'negative' : 'positive');
   }
 
   // ── 콤마 포맷 ──
