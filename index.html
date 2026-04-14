@@ -347,14 +347,16 @@
     <div class="loc-summary-card bp">
       <div class="loc-summary-title">🟠 부평</div>
       <div class="loc-summary-row"><span>수익</span><span class="loc-val" id="bp-rev">-</span></div>
-      <div class="loc-summary-row"><span>지출</span><span class="loc-val neg" id="bp-exp">-</span></div>
+      <div class="loc-summary-row"><span>고정지출</span><span class="loc-val neg" id="bp-fixed-exp">-</span></div>
+      <div class="loc-summary-row"><span>변동지출</span><span class="loc-val neg" id="bp-var-exp">-</span></div>
       <div class="loc-summary-divider"></div>
       <div class="loc-summary-net-row"><span class="lbl">순수익</span><span class="net-val positive" id="bp-net">-</span></div>
     </div>
     <div class="loc-summary-card yd">
       <div class="loc-summary-title">🟣 영등포</div>
       <div class="loc-summary-row"><span>수익</span><span class="loc-val" id="yd-rev">-</span></div>
-      <div class="loc-summary-row"><span>지출</span><span class="loc-val neg" id="yd-exp">-</span></div>
+      <div class="loc-summary-row"><span>고정지출</span><span class="loc-val neg" id="yd-fixed-exp">-</span></div>
+      <div class="loc-summary-row"><span>변동지출</span><span class="loc-val neg" id="yd-var-exp">-</span></div>
       <div class="loc-summary-divider"></div>
       <div class="loc-summary-net-row"><span class="lbl">순수익</span><span class="net-val positive" id="yd-net">-</span></div>
     </div>
@@ -840,15 +842,19 @@
     document.getElementById('sum-days').textContent = monthDays > 0 ? monthDays + '일' : '-';
 
     // 부평 / 영등포 카드
+    const bpVarExp = monthExpBp - fixedBp.total;
+    const ydVarExp = monthExpYd - fixedYd.total;
     const bpNet = monthRevBp - monthExpBp;
     const ydNet = monthRevYd - monthExpYd;
     document.getElementById('bp-rev').textContent = monthRevBp > 0 ? fmtMoneyFull(monthRevBp) : '-';
-    document.getElementById('bp-exp').textContent = monthExpBp > 0 ? fmtMoneyFull(monthExpBp) : '-';
+    document.getElementById('bp-fixed-exp').textContent = fixedBp.total > 0 ? fmtMoneyFull(fixedBp.total) : '-';
+    document.getElementById('bp-var-exp').textContent = bpVarExp > 0 ? fmtMoneyFull(bpVarExp) : '-';
     const bpNetEl = document.getElementById('bp-net');
     bpNetEl.textContent = (monthRevBp > 0 || monthExpBp > 0) ? fmtMoneyFull(bpNet) : '-';
     bpNetEl.className = 'net-val ' + (bpNet < 0 ? 'negative' : 'positive');
     document.getElementById('yd-rev').textContent = monthRevYd > 0 ? fmtMoneyFull(monthRevYd) : '-';
-    document.getElementById('yd-exp').textContent = monthExpYd > 0 ? fmtMoneyFull(monthExpYd) : '-';
+    document.getElementById('yd-fixed-exp').textContent = fixedYd.total > 0 ? fmtMoneyFull(fixedYd.total) : '-';
+    document.getElementById('yd-var-exp').textContent = ydVarExp > 0 ? fmtMoneyFull(ydVarExp) : '-';
     const ydNetEl = document.getElementById('yd-net');
     ydNetEl.textContent = (monthRevYd > 0 || monthExpYd > 0) ? fmtMoneyFull(ydNet) : '-';
     ydNetEl.className = 'net-val ' + (ydNet < 0 ? 'negative' : 'positive');
