@@ -287,7 +287,6 @@
       .fixed-modal { width: 92vw; padding: 20px 16px; }
       .fb-status { bottom: 10px; right: 10px; font-size: 0.62em; padding: 4px 9px; }
       .fixed-btn { font-size: 0.66em; padding: 5px 9px; }
-      .header-title-text { display: none; }
     }
   </style>
 </head>
@@ -310,7 +309,7 @@
     <button class="nav-btn" id="btn-prev">&#8592;</button>
     <div class="header-center">
       <div class="month-label" id="month-label"></div>
-      <div class="header-title-text" style="font-size:0.7em;font-weight:800;color:#ea580c;letter-spacing:0.5px;">의류 매출 관리</div>
+      <div style="font-size:0.7em;font-weight:800;color:#ea580c;letter-spacing:0.5px;">의류 매출 관리</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="fixed-btn" id="fixed-btn" onclick="openFixedModal()">
@@ -409,7 +408,7 @@
       </div>
     </div>
 
-    <!-- 변동 지출 섹션 (사입비, 관리비, 기타) -->
+    <!-- 변동 지출 섹션 (사입비, 관리비만) -->
     <div class="modal-section">
       <div class="modal-section-title expense">📦 변동 지출</div>
       <div class="input-group">
@@ -424,13 +423,6 @@
           <label>관리비</label>
           <div class="input-wrap mgmt-wrap">
             <input type="text" inputmode="numeric" id="input-mgmt" placeholder="0" />
-            <span class="input-unit">원</span>
-          </div>
-        </div>
-        <div class="input-row etc-exp">
-          <label>기타</label>
-          <div class="input-wrap etc-wrap">
-            <input type="text" inputmode="numeric" id="input-etc-var" placeholder="0" />
             <span class="input-unit">원</span>
           </div>
         </div>
@@ -637,11 +629,11 @@
     return (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('ko-KR') + '원';
   }
 
-  // ── 일별 변동 지출만 계산 (사입비, 관리비, 기타) ──
+  // ── 일별 변동 지출만 계산 (사입비, 관리비) ──
   function calcEntry(entry) {
     if (!entry) return { revenue: 0, expense: 0, net: 0, card: 0, transfer: 0, cash: 0 };
     const card = entry.card || 0, transfer = entry.transfer || 0, cash = entry.cash || 0;
-    const expense = (entry.purchase || 0) + (entry.mgmt || 0) + (entry.etcVar || 0);
+    const expense = (entry.purchase || 0) + (entry.mgmt || 0);
     const revenue = card + transfer + cash;
     return { revenue, expense, net: revenue - expense, card, transfer, cash };
   }
@@ -856,7 +848,7 @@
   function parseComma(id) {
     return parseInt((document.getElementById(id).value || '').replace(/[^0-9]/g, '')) || 0;
   }
-  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt','input-etc-var'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => formatComma(e.target));
   });
   ['fixed-input-rent','fixed-input-salary','fixed-input-vat','fixed-input-etc'].forEach(id => {
@@ -871,7 +863,6 @@
       cash:     parseComma('input-cash'),
       purchase: parseComma('input-purchase'),
       mgmt:     parseComma('input-mgmt'),
-      etcVar:   parseComma('input-etc-var'),
     };
   }
 
@@ -884,18 +875,17 @@
       document.getElementById('input-card').value     = entry.card     ? entry.card.toLocaleString('ko-KR')     : '';
       document.getElementById('input-transfer').value = entry.transfer ? entry.transfer.toLocaleString('ko-KR') : '';
       document.getElementById('input-cash').value     = entry.cash     ? entry.cash.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-purchase').value  = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
-      document.getElementById('input-mgmt').value      = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
-      document.getElementById('input-etc-var').value   = entry.etcVar   ? entry.etcVar.toLocaleString('ko-KR')   : '';
+      document.getElementById('input-purchase').value = entry.purchase ? entry.purchase.toLocaleString('ko-KR') : '';
+      document.getElementById('input-mgmt').value     = entry.mgmt     ? entry.mgmt.toLocaleString('ko-KR')     : '';
       document.getElementById('btn-delete').style.display = sales[`${selectedKey}_${loc}`] ? 'inline-block' : 'none';
       updateModalSummary();
     }
   }
 
   function updateModalSummary() {
-    const { card, transfer, cash, purchase, mgmt, etcVar } = getInputs();
+    const { card, transfer, cash, purchase, mgmt } = getInputs();
     const revenue = card + transfer + cash;
-    const expense = purchase + mgmt + etcVar;
+    const expense = purchase + mgmt;
     const net     = revenue - expense;
     document.getElementById('modal-rev-value').textContent = fmtMoneyFull(revenue);
     document.getElementById('modal-exp-value').textContent = fmtMoneyFull(expense);
@@ -904,7 +894,7 @@
     netBox.className = 'modal-net ' + (net >= 0 ? 'positive' : 'negative');
   }
 
-  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt','input-etc-var'].forEach(id => {
+  ['input-card','input-transfer','input-cash','input-purchase','input-mgmt'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateModalSummary);
   });
 
@@ -921,12 +911,12 @@
 
   async function saveEntry() {
     if (isSaving) return;
-    const { card, transfer, cash, purchase, mgmt, etcVar } = getInputs();
+    const { card, transfer, cash, purchase, mgmt } = getInputs();
     const fsKey = `${selectedKey}_${selectedLoc}`;
-    if (card === 0 && transfer === 0 && cash === 0 && purchase === 0 && mgmt === 0 && etcVar === 0) { deleteEntry(); return; }
+    if (card === 0 && transfer === 0 && cash === 0 && purchase === 0 && mgmt === 0) { deleteEntry(); return; }
     isSaving = true;
     document.getElementById('btn-save').disabled = true;
-    const data = { card, transfer, cash, purchase, mgmt, etcVar };
+    const data = { card, transfer, cash, purchase, mgmt };
     if (USE_FIREBASE && db) {
       try { await db.collection('cloth-sales').doc(fsKey).set(data); }
       catch(e) { alert('저장 중 오류가 발생했습니다.'); document.getElementById('btn-save').disabled = false; isSaving = false; return; }
